@@ -1,135 +1,283 @@
 #!/usr/bin/env python3
-"""Gera placeholders visuais faltantes para o jogo Último Acesso.
-
-Uso:
-  python3 scripts/generate_missing_images.py
-"""
+"""Gera imagens faltantes do Último Acesso via Gemini Flash Image."""
 from __future__ import annotations
 
-import math
+import base64
+import json
 import os
+import sys
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-try:
-    from PIL import Image, ImageDraw, ImageFont
-except ImportError as e:
-    raise SystemExit(
-        "Pillow é necessário. Instale com: pip install pillow"
-    ) from e
+ROOT = Path("/agent/ultimo_acesso/assets/images")
+PHOTOS = ROOT / "photos"
+AVATARS = ROOT / "avatars"
+WALLS = ROOT / "wallpapers"
 
-ROOT = Path(__file__).resolve().parents[1]
-IMG = ROOT / "assets" / "images"
+STYLE = (
+    "Cinematic smartphone photo, photorealistic, Brazilian urban night atmosphere, "
+    "subtle film grain, natural phone-camera look, moody investigative thriller tone, "
+    "no watermarks, no real brand logos unless fictional names are requested."
+)
+
+# filename -> (folder, aspect hint, prompt)
+JOBS: dict[str, tuple[str, str, str]] = {
+    # remaining marina gallery
+    "ph10.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical realistic smartphone messaging app screenshot dark mode, "
+        "single threatening message bubble reading exactly: Você precisa parar de investigar isso. "
+        "Unknown sender, night timestamp, minimal UI chrome.",
+    ),
+    "ph11.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical zoomed phone photo of black car license plate partially obscured, "
+        "readable characters like BRT-3 and blurry digits, parking garage night.",
+    ),
+    "ph12.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical warm office selfie of Brazilian woman journalist smiling at newsroom desk, "
+        "natural daylight, slightly lower quality recovered deleted photo feel.",
+    ),
+    "ph13.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical photo of paper city map on table with red pen X mark near labeled area "
+        "São Lucas, phone flash, investigative annotation.",
+    ),
+    "ph14.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical photo of blurred bank statement printout, visible amount 80.000 and "
+        "words AV Services, intentional soft blur on personal data.",
+    ),
+    "ph15.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical still from shaky phone video in parking corridor, motion blur, dark concrete "
+        "hallway, grainy night feel, no clear faces.",
+    ),
+    "ph16.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical photo of car window reflection at night showing faint female silhouette, "
+        "parking lights, mysterious.",
+    ),
+    "ph17.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical restaurant lunch photo of tired Brazilian male editor looking away from camera, "
+        "avoiding eye contact, daylight cafe, Marina POV across table.",
+    ),
+    "ph18.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical close-up yellow sticky note handwritten text exactly: 0912 — não esquecer, "
+        "on fridge, phone photo.",
+    ),
+    "ph19.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical night photo of modest hotel facade neon glow reading Hotel Norte, "
+        "wet street reflections near urban parking.",
+    ),
+    "ph20.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical older happy couple selfie Brazilian woman journalist and curly-haired man "
+        "with headphones vibe, daylight park, nostalgic warm grade.",
+    ),
+    "ph21.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical realistic smartphone screen recording UI, red REC indicator, timer 00:03:41, "
+        "dark blurred content behind overlay.",
+    ),
+    "ph22.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical contacts app screenshot contact named R. with note: apagar se algo acontecer, "
+        "iOS-like dark mode contacts UI.",
+    ),
+    "ph23.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical bar selfie two Brazilian women smiling, silver bracelet visible on one wrist, "
+        "warm lights.",
+    ),
+    "ph24.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical newsroom corkboard photo, red sticky note reading exactly: AURORA — NÃO PUBLICAR, "
+        "fluorescent office light.",
+    ),
+    "ph25.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical messaging screenshot chat with contact R., message: Eles sabem que alguém vazou, "
+        "dark mode chat UI.",
+    ),
+    "ph26.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical night photo corporate building entrance guard booth CCTV, black car parked nearby, "
+        "cold lighting, fictional company.",
+    ),
+    "ph27.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical photo restaurant bill on table stamped time 23:09 visible, warm restaurant light.",
+    ),
+    "ph28.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical elevator mirror selfie Brazilian woman with black backpack, tense expression, "
+        "fluorescent elevator light.",
+    ),
+    "ph29.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical clear store receipt prepaid chip number 90000-1717 and AV Services printed.",
+    ),
+    "ph30.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical bathroom mirror photo lipstick writing on glass exactly: 0912 — não esquecer, "
+        "foggy mirror apartment bathroom.",
+    ),
+    "ph31.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical security camera dashboard UI screenshot, CÂMERA B status SEM SINAL 00:12, "
+        "dark monitoring software aesthetic.",
+    ),
+    "ph32.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical bank transfer screenshot amount 80.000 from AV Services to D. Rocha, "
+        "slightly damaged deleted look, fictional NexoBank UI.",
+    ),
+    "ph33.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical night wet street photo, street sign partially reading São Luc…, empty sidewalk "
+        "toward parking garage.",
+    ),
+    "ph34.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical voice memo app screen file gravacao_2347.m4a duration 03:41, waveform, dark mode.",
+    ),
+    "phb1.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical empty underground parking, concrete pillar large letter B, yellow sodium lights, "
+        "no people, anxious waiting mood.",
+    ),
+    "phb2.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical phone photo black SUV parking ramp, fictional ValeLogística fleet sticker, "
+        "license plate clearly NEX-4A71, night garage.",
+    ),
+    "phb3.jpg": (
+        "photos",
+        "9:16",
+        f"{STYLE} Vertical banking app screenshot negative balance around 38.000, fictional NexoBank dark mode UI.",
+    ),
+}
 
 
-def ensure_dir(p: Path) -> None:
-    p.mkdir(parents=True, exist_ok=True)
+def out_path(name: str, folder: str) -> Path:
+    base = {"photos": PHOTOS, "avatars": AVATARS, "wallpapers": WALLS}[folder]
+    return base / name
 
 
-def gradient(size, c1, c2):
-    w, h = size
-    im = Image.new("RGB", size)
-    px = im.load()
-    for y in range(h):
-        t = y / max(h - 1, 1)
-        r = int(c1[0] + (c2[0] - c1[0]) * t)
-        g = int(c1[1] + (c2[1] - c1[1]) * t)
-        b = int(c1[2] + (c2[2] - c1[2]) * t)
-        for x in range(w):
-            px[x, y] = (r, g, b)
-    return im
+def already_exists(name: str, folder: str) -> bool:
+    p = out_path(name, folder)
+    stem = p.with_suffix("")
+    return any(stem.with_suffix(ext).exists() for ext in (".jpg", ".png", ".jpeg", ".webp"))
 
 
-def save_jpeg(im: Image.Image, path: Path, quality: int = 82) -> None:
-    ensure_dir(path.parent)
-    rgb = im.convert("RGB")
-    rgb.save(path, "JPEG", quality=quality, optimize=True)
-    print(f"wrote {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
+def generate_one(api_key: str, model: str, prompt: str, aspect: str) -> bytes:
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{model}:generateContent?key={api_key}"
+    )
+    body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseModalities": ["TEXT", "IMAGE"],
+            "imageConfig": {"aspectRatio": aspect},
+        },
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.loads(resp.read().decode())
+
+    for cand in data.get("candidates", []):
+        for part in cand.get("content", {}).get("parts", []):
+            inline = part.get("inlineData") or part.get("inline_data")
+            if not inline:
+                continue
+            mime = inline.get("mimeType") or inline.get("mime_type") or ""
+            if "image" in mime or inline.get("data"):
+                return base64.b64decode(inline["data"])
+    raise RuntimeError(f"No image in response: {json.dumps(data)[:500]}")
 
 
-def make_wallpaper(name: str, c1, c2) -> None:
-    im = gradient((1080, 1920), c1, c2)
-    draw = ImageDraw.Draw(im)
-    # soft circles
-    for i in range(8):
-        x = 120 + (i * 137) % 900
-        y = 200 + (i * 211) % 1600
-        r = 80 + (i * 37) % 180
-        col = tuple(min(255, c + 30) for c in c2) + (40,)
-        overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
-        od = ImageDraw.Draw(overlay)
-        od.ellipse((x - r, y - r, x + r, y + r), fill=col)
-        im = Image.alpha_composite(im.convert("RGBA"), overlay).convert("RGB")
-    save_jpeg(im, IMG / "wallpapers" / f"{name}.jpg")
+def main() -> int:
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        print("MISSING_KEY", file=sys.stderr)
+        return 2
 
+    model = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image")
+    only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
+    failed: list[str] = []
+    done = 0
+    skipped = 0
 
-def make_avatar(name: str, seed: int) -> None:
-    c1 = ((seed * 37) % 180, (seed * 59) % 180, (seed * 83) % 180)
-    c2 = ((c1[0] + 40) % 220, (c1[1] + 60) % 220, (c1[2] + 80) % 220)
-    im = gradient((512, 512), c1, c2)
-    draw = ImageDraw.Draw(im)
-    # head silhouette
-    draw.ellipse((156, 90, 356, 290), fill=(240, 220, 200))
-    draw.ellipse((120, 280, 392, 520), fill=(40, 40, 50))
-    letter = name.replace("char_", "")[:1].upper()
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 120)
-    except Exception:
-        font = ImageFont.load_default()
-    draw.text((220, 160), letter, fill=(30, 30, 30), font=font)
-    save_jpeg(im, IMG / "avatars" / f"{name}.jpg")
+    for name, (folder, aspect, prompt) in JOBS.items():
+        if only and name not in only and name.replace(".jpg", "") not in only:
+            continue
+        if already_exists(name, folder):
+            print(f"SKIP {name}")
+            skipped += 1
+            continue
+        print(f"GEN  {name} ...", flush=True)
+        try:
+            img = generate_one(api_key, model, prompt, aspect)
+            dest = out_path(name, folder)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(img)
+            print(f"OK   {name} ({len(img)} bytes)")
+            done += 1
+            time.sleep(1.2)
+        except urllib.error.HTTPError as e:
+            err = e.read().decode(errors="replace")
+            print(f"FAIL {name}: HTTP {e.code} {err[:300]}")
+            failed.append(name)
+            if e.code in (429, 403) or "RESOURCE_EXHAUSTED" in err or "quota" in err.lower():
+                print("STOP: credits/quota exhausted")
+                break
+        except Exception as e:  # noqa: BLE001
+            print(f"FAIL {name}: {e}")
+            failed.append(name)
 
-
-def make_photo(name: str, seed: int, label: str) -> None:
-    c1 = ((seed * 17) % 160 + 20, (seed * 29) % 160 + 20, (seed * 41) % 160 + 20)
-    c2 = ((c1[0] + 70) % 255, (c1[1] + 50) % 255, (c1[2] + 90) % 255)
-    im = gradient((900, 1200), c1, c2)
-    draw = ImageDraw.Draw(im)
-    for i in range(6):
-        x = (seed * 13 + i * 97) % 800
-        y = (seed * 19 + i * 131) % 1000
-        r = 40 + (i * 23) % 120
-        draw.ellipse((x, y, x + r, y + r), fill=(c2[0] // 2, c2[1] // 2, c2[2] // 2))
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
-    except Exception:
-        font = ImageFont.load_default()
-    draw.rectangle((0, 1100, 900, 1200), fill=(0, 0, 0))
-    draw.text((24, 1125), label[:40], fill=(255, 255, 255), font=font)
-    save_jpeg(im, IMG / "photos" / f"{name}.jpg", quality=78)
-
-
-def main() -> None:
-    ensure_dir(IMG / "wallpapers")
-    ensure_dir(IMG / "avatars")
-    ensure_dir(IMG / "photos")
-
-    # Wallpapers
-    make_wallpaper("dusk_harbor", (12, 24, 48), (80, 60, 90))
-    make_wallpaper("blush_concrete", (60, 40, 40), (180, 140, 130))
-
-    avatars = [
-        "char_bruno", "char_camila", "char_daniel", "char_leo",
-        "char_marina", "char_rafael", "char_rita", "char_sofia", "char_unknown",
-    ]
-    for i, a in enumerate(avatars):
-        dest = IMG / "avatars" / f"{a}.jpg"
-        if not dest.exists() or dest.stat().st_size < 1000:
-            make_avatar(a, 100 + i * 17)
-
-    # Narrative photos ph1..ph34 + phb1..phb3
-    for i in range(1, 35):
-        name = f"ph{i}"
-        dest = IMG / "photos" / f"{name}.jpg"
-        if not dest.exists() or dest.stat().st_size < 1000:
-            make_photo(name, 200 + i * 11, f"photo {name}")
-    for i in range(1, 4):
-        name = f"phb{i}"
-        dest = IMG / "photos" / f"{name}.jpg"
-        if not dest.exists() or dest.stat().st_size < 1000:
-            make_photo(name, 500 + i * 13, f"device B {name}")
-
-    print("done")
+    print(json.dumps({"done": done, "skipped": skipped, "failed": failed}, ensure_ascii=False))
+    return 0 if not failed else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
