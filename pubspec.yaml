@@ -1,0 +1,39 @@
+name: ultimo_acesso
+description: "ÚLTIMO ACESSO — jogo narrativo investigativo no smartphone VANTA/OSIS"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
+  uuid: ^4.6.0
+  collection: ^1.19.1
+  intl: ^0.20.3
+  path_provider: ^2.1.5
+  audioplayers: ^6.7.1
+  flutter_animate: ^4.5.2
+  google_fonts: ^8.1.0
+  equatable: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.15.1
+  json_serializable: ^6.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/cases/case_001/
+    - assets/cases/case_001_coop/
+    - assets/audio/
+    - assets/images/wallpapers/
+    - assets/images/avatars/
+    - assets/images/photos/
