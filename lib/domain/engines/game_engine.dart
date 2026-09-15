@@ -437,4 +437,61 @@ class GameEngine extends ChangeNotifier {
     if (t >= 0.92) {
       level = math.min(level, 4);
     } else if (t >= 0.78) {
-      le
+      level = math.min(level, 12);
+    } else if (t >= 0.55) {
+      level = math.min(level, 28);
+    }
+    level = level.clamp(1, 100);
+
+    final previous = progress.batteryPercent;
+    progress = progress.copyWith(batteryPercent: level);
+    _maybeWarnLowBattery(previous, level);
+  }
+
+  void _maybeWarnLowBattery(int previous, int now) {
+    void cross(int threshold, String flag, String label) {
+      if (now > threshold || previous <= threshold) return;
+      if (progress.flags[flag] == true) return;
+      progress.flags[flag] = true;
+
+      if (islandState == IslandState.idle ||
+          islandState == IslandState.lowBattery) {
+        islandState = IslandState.lowBattery;
+        islandLabel = label;
+        Future.delayed(const Duration(seconds: 4), () {
+          if (islandState == IslandState.lowBattery) {
+            islandState = IslandState.idle;
+            islandLabel = '';
+            notifyListeners();
+          }
+        });
+      }
+
+      if (threshold <= 20) {
+        notifications.insert(
+          0,
+          PhoneNotification(
+            id: _uuid.v4(),
+            appId: 'settings',
+            title: threshold <= 5 ? 'Bateria crítica' : 'Bateria fraca',
+            body: threshold <= 5
+                ? 'O aparelho pode desligar a qualquer momento. Conclua a investigação.'
+                : 'Restam $now%. Priorize pistas e abra o Quadro → Conclusão.',
+          ),
+        );
+      }
+    }
+
+    cross(35, 'bat_warn_35', 'bateria 35%');
+    cross(20, 'bat_warn_20', 'bateria fraca');
+    cross(10, 'bat_warn_10', 'bateria crítica');
+    cross(5, 'bat_warn_5', 'desligando…');
+  }
+
+  void _checkLiveEvents({required String trigger, Map<String, dynamic>? extra}) {
+    if (caseData == null) return;
+    for (final ev in c.liveEvents.where((e) => e.trigger == trigger)) {
+      if (progress.firedLiveEvents.contains(ev.id)) continue;
+      if (!_matchesCondition(ev.condition, extra)) continue;
+      progress.firedLiveEvents.add(ev.id);
+      Future.delayed(Durat
