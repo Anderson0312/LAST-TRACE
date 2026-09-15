@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/osis_theme.dart';
@@ -168,68 +167,14 @@ class _SignalCluster extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CustomPaint(
-          size: const Size(17, 12),
-          painter: _CellularPainter(),
-        ),
+        const Icon(Icons.signal_cellular_alt, size: 15, color: Colors.white),
         const SizedBox(width: 5),
-        CustomPaint(
-          size: const Size(16, 12),
-          painter: _WifiPainter(),
-        ),
+        const Icon(Icons.wifi, size: 16, color: Colors.white),
         const SizedBox(width: 6),
         _Battery(percent: battery),
       ],
     );
   }
-}
-
-class _CellularPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white;
-    const bars = 4;
-    for (var i = 0; i < bars; i++) {
-      final h = size.height * ((i + 1) / bars);
-      final x = i * (size.width / bars);
-      final w = size.width / bars - 1.4;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, size.height - h, w, h),
-          const Radius.circular(0.6),
-        ),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _WifiPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    final c = Offset(size.width / 2, size.height - 1.1);
-    for (final r in [3.8, 7.2, 10.6]) {
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r),
-        math.pi * 0.25,
-        math.pi * 0.5,
-        false,
-        paint,
-      );
-    }
-    canvas.drawCircle(c, 1.15, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Battery extends StatelessWidget {
