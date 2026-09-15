@@ -370,3 +370,84 @@ class PhotoHotspot {
 
 class PhotoItem {
   final String id;
+  final String title;
+  final String caption;
+  final String visualDescription;
+  final DateTime takenAt;
+  final DateTime? metadataTakenAt;
+  final String? locationName;
+  final double? lat;
+  final double? lng;
+  final String? deviceName;
+  final bool deleted;
+  final bool corrupted;
+  final bool isScreenshot;
+  final bool isVideo;
+  final List<PhotoHotspot> hotspots;
+  final List<String> revealsClueIds;
+  final String colorSeed; // for generated placeholder art
+
+  const PhotoItem({
+    required this.id,
+    required this.title,
+    required this.caption,
+    required this.visualDescription,
+    required this.takenAt,
+    this.metadataTakenAt,
+    this.locationName,
+    this.lat,
+    this.lng,
+    this.deviceName,
+    this.deleted = false,
+    this.corrupted = false,
+    this.isScreenshot = false,
+    this.isVideo = false,
+    this.hotspots = const [],
+    this.revealsClueIds = const [],
+    this.colorSeed = 'A0',
+  });
+
+  factory PhotoItem.fromJson(Map<String, dynamic> j) => PhotoItem(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        caption: j['caption'] as String? ?? '',
+        visualDescription: j['visualDescription'] as String? ?? '',
+        takenAt: DateTime.parse(j['takenAt'] as String),
+        metadataTakenAt: j['metadataTakenAt'] != null
+            ? DateTime.parse(j['metadataTakenAt'] as String)
+            : null,
+        locationName: j['locationName'] as String?,
+        lat: (j['lat'] as num?)?.toDouble(),
+        lng: (j['lng'] as num?)?.toDouble(),
+        deviceName: j['deviceName'] as String?,
+        deleted: j['deleted'] as bool? ?? false,
+        corrupted: j['corrupted'] as bool? ?? false,
+        isScreenshot: j['isScreenshot'] as bool? ?? false,
+        isVideo: j['isVideo'] as bool? ?? false,
+        hotspots: _list(j['hotspots'], PhotoHotspot.fromJson),
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        colorSeed: j['colorSeed'] as String? ?? 'A0',
+      );
+}
+
+enum CallType { incoming, outgoing, missed }
+
+class CallLog {
+  final String id;
+  final String contactId;
+  final String displayName;
+  final String? number;
+  final CallType type;
+  final DateTime timestamp;
+  final int durationSeconds;
+  final List<String> revealsClueIds;
+  final bool unknown;
+
+  const CallLog({
+    required this.id,
+    required this.contactId,
+    required this.displayName,
+    this.number,
+    required this.type,
+    required this.timestamp,
+    this.durationSeconds = 0,
