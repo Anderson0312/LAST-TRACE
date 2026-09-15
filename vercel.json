@@ -1,8 +1,9 @@
 {
-  "version": 2,
-  "buildCommand": "flutter build web --release",
-  "outputDirectory": "build/web",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "installCommand": "if [ ! -d $HOME/flutter ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter; fi && export PATH=\"$HOME/flutter/bin:$PATH\" && flutter config --no-analytics && flutter precache --web && flutter pub get",
+  "buildCommand": "export PATH=\"$HOME/flutter/bin:$PATH\" && flutter build web --release",
+  "outputDirectory": "build/web",
   "rewrites": [
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
