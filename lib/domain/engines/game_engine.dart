@@ -604,4 +604,88 @@ class GameEngine extends ChangeNotifier {
 
   Ending? evaluateEnding({String? accusedId}) {
     final accused = accusedId ?? progress.accusedCharacterId;
-    progress = progress
+    progress = progress.copyWith(accusedCharacterId: accused);
+
+    Ending? best;
+    int bestRank = -1;
+    for (final ending in c.endings) {
+      final req = ending.requirements;
+      var ok = true;
+      if (req['accuse'] != null && req['accuse'] != accused) ok = false;
+      if (req['minScore'] != null &&
+          progress.investigationScore < (req['minScore'] as num).toDouble()) {
+        ok = false;
+      }
+      if (req['maxScore'] != null &&
+          progress.investigationScore > (req['maxScore'] as num).toDouble()) {
+        ok = false;
+      }
+      if (req['requiredClues'] is List) {
+        final list = (req['requiredClues'] as List).cast<String>();
+        if (!list.every(progress.discoveredClues.contains)) ok = false;
+      }
+      if (req['requiredContradictions'] is List) {
+        final list = (req['requiredContradictions'] as List).cast<String>();
+        if (!list.every(progress.markedContradictions.contains)) ok = false;
+      }
+      if (req['remoteAccess'] == true && !progress.remoteAccessDetected) ok = false;
+      if (!ok) continue;
+      final rank = req['priority'] as int? ?? 0;
+      if (rank > bestRank) {
+        bestRank = rank;
+        best = ending;
+      }
+    }
+
+    // fallback E
+    best ??= c.endings.where((e) => e.code == 'E').firstOrNull ?? c.endings.last;
+    progress.unlockedEndings.add(best.id);
+    progress = progress.copyWith(chosenEndingId: best.id);
+    notifyListeners();
+    return best;
+  }
+
+  // Debug
+  void debugUnlockAll() {
+    if (!debugMode) return;
+    for (final clue in c.clues) {
+      progress.discoveredClues.add(clue.id);
+    }
+    for (final t in c.timeline) {
+      progress.unlockedTimeline.add(t.id);
+    }
+    for (final p in c.puzzles) {
+      progress.solvedPuzzles.add(p.id);
+      progress.unlockedContent.addAll(p.unlockOnSolve);
+    }
+    _recomputeScores();
+    notifyListeners();
+  }
+
+  void debugReset() {
+    if (!debugMode || caseData == null) return;
+    loadCase(caseData!);
+  }
+
+  @override
+  void dispose() {
+    stopLiveLoop();
+    super.dispose();
+  }
+}
+
+enum IslandState {
+  idle,
+  call,
+  music,
+  voiceRecording,
+  timer,
+  notification,
+  navigation,
+  unknownActivity,
+  lowBattery,
+}
+
+extension FirstOrNullExt<E> on Iterable<E> {
+  E? get firstOrNull => isEmpty ? null : first;
+}
