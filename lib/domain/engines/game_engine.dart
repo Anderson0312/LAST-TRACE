@@ -494,4 +494,55 @@ class GameEngine extends ChangeNotifier {
       if (progress.firedLiveEvents.contains(ev.id)) continue;
       if (!_matchesCondition(ev.condition, extra)) continue;
       progress.firedLiveEvents.add(ev.id);
-      Future.delayed(Durat
+      Future.delayed(Duration(seconds: ev.delaySeconds), () {
+        _fireLiveEvent(ev);
+      });
+    }
+  }
+
+  bool _matchesCondition(Map<String, dynamic> cond, Map<String, dynamic>? extra) {
+    if (cond['minScore'] != null &&
+        progress.investigationScore < (cond['minScore'] as num).toDouble()) {
+      return false;
+    }
+    if (cond['maxScore'] != null &&
+        progress.investigationScore > (cond['maxScore'] as num).toDouble()) {
+      return false;
+    }
+    if (cond['minElapsedSeconds'] != null &&
+        progress.playSeconds < (cond['minElapsedSeconds'] as num).toInt()) {
+      return false;
+    }
+    if (cond['maxElapsedSeconds'] != null &&
+        progress.playSeconds > (cond['maxElapsedSeconds'] as num).toInt()) {
+      return false;
+    }
+    if (cond['minClueCount'] != null &&
+        progress.discoveredClues.length < (cond['minClueCount'] as num).toInt()) {
+      return false;
+    }
+    if (cond['maxClueCount'] != null &&
+        progress.discoveredClues.length > (cond['maxClueCount'] as num).toInt()) {
+      return false;
+    }
+    if (cond['clueId'] != null &&
+        !progress.discoveredClues.contains(cond['clueId'])) {
+      return false;
+    }
+    if (cond['anyClues'] is List) {
+      final list = (cond['anyClues'] as List).cast<String>();
+      if (!list.any(progress.discoveredClues.contains)) return false;
+    }
+    if (cond['allClues'] is List) {
+      final list = (cond['allClues'] as List).cast<String>();
+      if (!list.every(progress.discoveredClues.contains)) return false;
+    }
+    // Dispara enquanto o jogador ainda não achou pelo menos uma destas pistas.
+    if (cond['missingAnyClues'] is List) {
+      final list = (cond['missingAnyClues'] as List).cast<String>();
+      if (list.every(progress.discoveredClues.contains)) return false;
+    }
+    // Dispara só se nenhuma das pistas listadas foi encontrada.
+    if (cond['missingAllClues'] is List) {
+      final list = (cond['missingAllClues'] as List).cast<String>();
+      if (list.any(progress.discoveredCl
