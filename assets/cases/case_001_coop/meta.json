@@ -1,0 +1,23 @@
+{
+  "id": "case_001_coop",
+  "title": "A Última Mensagem — Cooperativo",
+  "slogan": "Dois celulares. Duas perspectivas. Uma verdade.",
+  "consensusFields": ["suspect", "motive", "place", "time", "method"],
+  "deviceA": {
+    "deviceCaseId": "case_001",
+    "ownerName": "Marina Alves",
+    "ownerRelation": "Vítima — jornalista",
+    "tagline": "O aparelho encontrado no São Lucas.",
+    "lockPin": "0912",
+    "lockHint": "Mês + algo que ela nunca esqueceu"
+  },
+  "deviceB": {
+    "deviceCaseId": "case_001_device_b",
+    "ownerName": "Camila Duarte",
+    "ownerRelation": "Colega de redação",
+    "tagline": "O celular de quem marcou o encontro.",
+    "lockPin": "2308",
+    "lockHint": "Dia + mês do encontro"
+  },
+  "crossClues": []
+}
