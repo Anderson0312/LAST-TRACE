@@ -412,4 +412,236 @@
       "id": "phb1",
       "title": "Pilar B",
       "caption": "Cheguei cedo",
-      "visualDe
+      "visualDescription": "Estacionamento vazio, pilar B, luz amarela",
+      "takenAt": "2024-08-13T23:22:00",
+      "locationName": "Estacionamento São Lucas",
+      "deleted": false,
+      "corrupted": false,
+      "isScreenshot": false,
+      "isVideo": false,
+      "colorSeed": "71",
+      "deviceName": "VANTA S",
+      "revealsClueIds": [
+        "CLUE_B_LOC_PARKING"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "phb2",
+      "title": "SUV na rampa",
+      "caption": "Não era pra eu ter tirado",
+      "visualDescription": "SUV preto ValeLog, placa NEX-4A71",
+      "takenAt": "2024-08-13T23:26:00",
+      "locationName": "Estacionamento São Lucas",
+      "deleted": false,
+      "corrupted": false,
+      "isScreenshot": false,
+      "isVideo": false,
+      "colorSeed": "18",
+      "deviceName": "VANTA S",
+      "revealsClueIds": [
+        "CLUE_B_PHOTO_CAR"
+      ],
+      "hotspots": [
+        {
+          "id": "hb1",
+          "label": "Placa",
+          "x": 0.62,
+          "y": 0.55,
+          "revealsClueIds": [
+            "CLUE_B_PHOTO_CAR"
+          ],
+          "w": 0.12,
+          "h": 0.12
+        }
+      ]
+    },
+    {
+      "id": "phb3",
+      "title": "Print dívida",
+      "caption": "38 mil",
+      "visualDescription": "Extrato NexoBank — saldo negativo",
+      "takenAt": "2024-08-10T11:00:00",
+      "locationName": null,
+      "deleted": false,
+      "corrupted": false,
+      "isScreenshot": true,
+      "isVideo": false,
+      "colorSeed": "33",
+      "deviceName": "VANTA S",
+      "revealsClueIds": [
+        "CLUE_B_GUILT_NOTE"
+      ],
+      "hotspots": []
+    }
+  ],
+  "calls": [
+    {
+      "id": "cb1",
+      "contactId": "char_bruno",
+      "displayName": "+55 11 90000-1717",
+      "timestamp": "2024-08-13T23:18:00",
+      "durationSeconds": 22,
+      "revealsClueIds": [
+        "CLUE_B_PREPAID"
+      ],
+      "type": "incoming",
+      "number": null
+    },
+    {
+      "id": "cb2",
+      "contactId": "char_marina",
+      "displayName": "Marina",
+      "timestamp": "2024-08-13T22:50:00",
+      "durationSeconds": 48,
+      "revealsClueIds": [],
+      "type": "outgoing",
+      "number": null
+    },
+    {
+      "id": "cb3",
+      "contactId": "char_daniel",
+      "displayName": "Daniel Rocha",
+      "timestamp": "2024-08-13T20:12:00",
+      "durationSeconds": 186,
+      "revealsClueIds": [],
+      "type": "incoming",
+      "number": null
+    }
+  ],
+  "emails": [
+    {
+      "id": "emb1",
+      "from": "bruno.vale@valelog.com.br",
+      "to": [
+        "camila.duarte@cronicanorte.news"
+      ],
+      "subject": "Proposta de colaboração",
+      "body": "Camila — mantenha nossa conversa offline. O favor será recompensado.",
+      "timestamp": "2024-08-12T14:00:00",
+      "isDraft": false,
+      "revealsClueIds": [
+        "CLUE_B_BRUNO_ORDER"
+      ]
+    },
+    {
+      "id": "emb2",
+      "from": "camila.duarte@cronicanorte.news",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "(rascunho) Me desculpa",
+      "body": "Marina, se você estiver lendo isso… eu não escolhi. Eles têm a dívida. Eu só queria que você parasse a matéria.",
+      "timestamp": "2024-08-14T02:10:00",
+      "isDraft": true,
+      "revealsClueIds": [
+        "CLUE_B_GUILT_NOTE"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "nb1",
+      "title": "Não esquecer",
+      "body": "Rita O. — aniversário 04/03. Marina pediu para eu não esquecer (senha?).",
+      "updatedAt": "2024-08-13T12:00:00",
+      "revealsClueIds": [
+        "CLUE_B_RITA_BDAY"
+      ]
+    },
+    {
+      "id": "nb2",
+      "title": "…",
+      "body": "Eu só marquei o lugar. Eu não sabia que… Eu deveria ter avisado a Marina. Dívida 38 mil. BV sabe.",
+      "updatedAt": "2024-08-14T01:20:00",
+      "revealsClueIds": [
+        "CLUE_B_GUILT_NOTE"
+      ]
+    },
+    {
+      "id": "nb3",
+      "title": "Pilar B",
+      "body": "23:20 chegar. Mensagem pra Marina 22:55. Sair antes das 23:45. NÃO OLHAR PARA O CARRO.",
+      "updatedAt": "2024-08-13T21:30:00",
+      "revealsClueIds": [
+        "CLUE_B_LOC_PARKING"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "id": "file_b_audio",
+      "name": "memo_0813.m4a",
+      "sizeLabel": "1.2 MB",
+      "content": "Daniel: 'Camila, faz o que o Bruno mandar. A matéria não sobe. Eu cuido do seu contrato.'",
+      "locked": false,
+      "revealsClueIds": [
+        "CLUE_B_AUDIO_DANIEL"
+      ],
+      "type": "audio",
+      "path": "/Gravador/",
+      "modifiedAt": "2024-08-13T20:15:00"
+    }
+  ],
+  "locations": [
+    {
+      "id": "locb1",
+      "name": "Redação Crônica Norte",
+      "lat": -23.56,
+      "lng": -46.65,
+      "kind": "history",
+      "visitedAt": "2024-08-13T19:00:00"
+    },
+    {
+      "id": "locb2",
+      "name": "Estacionamento São Lucas",
+      "lat": -23.59,
+      "lng": -46.64,
+      "revealsClueIds": [
+        "CLUE_B_LOC_PARKING"
+      ],
+      "kind": "history",
+      "visitedAt": "2024-08-13T23:24:00"
+    },
+    {
+      "id": "locb3",
+      "name": "Estacionamento São Lucas",
+      "lat": -23.59,
+      "lng": -46.64,
+      "kind": "history",
+      "visitedAt": "2024-08-13T23:51:00"
+    }
+  ],
+  "browserHistory": [
+    {
+      "id": "brb1",
+      "title": "Como apagar conversas do WhatsApp",
+      "url": "https://support.example/whatsapp-delete",
+      "visitedAt": "2024-08-13T23:58:00",
+      "revealsClueIds": []
+    },
+    {
+      "id": "brb2",
+      "title": "Renegociação dívida NexoBank",
+      "url": "https://nexobank.example/dividas",
+      "visitedAt": "2024-08-12T09:10:00",
+      "revealsClueIds": [
+        "CLUE_B_GUILT_NOTE"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "id": "tlb1",
+      "timestamp": "2024-08-13T21:05:00",
+      "description": "Bruno ordena: pilar B às 23:20",
+      "source": "WhatsApp",
+      "reliability": 0.95,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tlb2",
+      "timestamp": "2024-08-13T22:55:00",
+      "description": "Camila chama Marina ao São Lucas",
+      "source": "Whats
