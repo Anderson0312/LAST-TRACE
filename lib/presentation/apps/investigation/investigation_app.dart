@@ -279,4 +279,260 @@ class _InvestigationAppState extends State<InvestigationApp>
     );
   }
 
-  void _pick(String id
+  void _pick(String id) {
+    setState(() {
+      if (_selectedA == null) {
+        _selectedA = id;
+      } else if (_selectedB == null && id != _selectedA) {
+        _selectedB = id;
+      } else {
+        _selectedA = id;
+        _selectedB = null;
+      }
+    });
+  }
+
+  IconData _tagIcon(NoteTag t) {
+    switch (t) {
+      case NoteTag.suspect:
+        return Icons.person_search;
+      case NoteTag.evidence:
+        return Icons.fingerprint;
+      case NoteTag.theory:
+        return Icons.lightbulb_outline;
+      case NoteTag.location:
+        return Icons.place;
+      case NoteTag.question:
+        return Icons.help_outline;
+      case NoteTag.other:
+        return Icons.notes;
+    }
+  }
+
+  Future<void> _addNote(GameEngine engine) async {
+    final text = TextEditingController();
+    var tag = NoteTag.theory;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: OsisTheme.bgElevated,
+        title: const Text('Anotação'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: text, maxLines: 3),
+            DropdownButtonFormField<NoteTag>(
+              initialValue: tag,
+              items: NoteTag.values
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) tag = v;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Salvar')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (ok == true && text.text.trim().isNotEmpty) {
+      engine.addInvestigatorNote(text.text.trim(), tag);
+      await autosave(context);
+    }
+  }
+
+  Widget _clues(GameEngine engine, CoopEngine coop) {
+    final clues = engine.c.clues
+        .where((c) => engine.progress.discoveredClues.contains(c.id))
+        .toList();
+    return ListView.builder(
+      itemCount: clues.length,
+      itemBuilder: (_, i) {
+        final c = clues[i];
+        final shared = coop.isCoop && coop.sharedClueIds.contains(c.id);
+        return ListTile(
+          leading: Icon(
+            Icons.circle,
+            size: 12,
+            color: c.importance == ClueImportance.critical
+                ? OsisTheme.danger
+                : OsisTheme.accent,
+          ),
+          title: Text(c.name),
+          subtitle: Text('${c.origin}\n${c.content}', maxLines: 3),
+          isThreeLine: true,
+          trailing: coop.isCoop
+              ? IconButton(
+                  tooltip: shared
+                      ? 'Já compartilhada'
+                      : 'Compartilhar (${coop.encodeShareCode(c.id)})',
+                  icon: Icon(
+                    shared ? Icons.check_circle : Icons.ios_share,
+                    color: shared ? Colors.greenAccent : OsisTheme.accent,
+                  ),
+                  onPressed: shared
+                      ? null
+                      : () async {
+                          final item = await coop.shareClue(c.id);
+                          if (!mounted || item == null) return;
+                          final code = coop.encodeShareCode(c.id);
+                          await Clipboard.setData(ClipboardData(text: code));
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Compartilhada. Código para o parceiro: $code',
+                              ),
+                            ),
+                          );
+                        },
+                )
+              : (engine.debugMode
+                  ? Text(c.id,
+                      style:
+                          const TextStyle(fontSize: 9, color: Colors.white30))
+                  : null),
+          onTap: () => engine.discoverClue(c.id, analyzed: true),
+        );
+      },
+    );
+  }
+
+  Widget _timeline(GameEngine engine, DateFormat fmt) {
+    final events = engine.c.timeline.where(engine.isTimelineVisible).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: events.length,
+      itemBuilder: (_, i) {
+        final e = events[i];
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 52,
+              child: Text(fmt.format(e.timestamp),
+                  style: const TextStyle(
+                      color: OsisTheme.accent, fontWeight: FontWeight.w600)),
+            ),
+            Container(
+              width: 10,
+              height: 10,
+              margin: const EdgeInsets.only(top: 4, right: 10),
+              decoration: const BoxDecoration(
+                color: Colors.white54,
+                shape: BoxShape.circle,
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(e.description),
+                    Text(
+                      [
+                        if (e.location != null) e.location!,
+                        e.source,
+                        'conf ${(e.reliability * 100).round()}%',
+                      ].join(' · '),
+                      style: const TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _contras(GameEngine engine) {
+    return ListView(
+      children: engine.c.contradictions.map((c) {
+        final ready =
+            c.evidenceClueIds.every(engine.progress.discoveredClues.contains);
+        final marked = engine.progress.markedContradictions.contains(c.id);
+        return ListTile(
+          title: Text(c.statement),
+          subtitle: Text(ready
+              ? (marked ? c.resolution : 'Evidências prontas — confrontar')
+              : 'Faltam evidências'),
+          trailing: marked
+              ? const Icon(Icons.check, color: Colors.greenAccent)
+              : IconButton(
+                  icon: const Icon(Icons.gavel),
+                  onPressed: ready
+                      ? () {
+                          engine.markContradiction(c.id);
+                          autosave(context);
+                        }
+                      : null,
+                ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _ending(GameEngine engine) {
+    final suspects = engine.c.characters
+        .where((c) => c.role == CharacterRole.suspect)
+        .toList();
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _urgencyBanner(engine),
+        const SizedBox(height: 12),
+        const Text(
+          'Quando estiver pronto, escolha quem acusar. O jogo avalia evidências — não há confirmação prévia.',
+          style: TextStyle(color: Colors.white70, height: 1.4),
+        ),
+        const SizedBox(height: 12),
+        ...suspects.map((s) => ListTile(
+              title: Text(s.name),
+              subtitle: Text(s.profession ?? ''),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                final ending = engine.evaluateEnding(accusedId: s.id);
+                autosave(context);
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    backgroundColor: OsisTheme.bgElevated,
+                    title: Text('FINAL ${ending?.code}: ${ending?.title}'),
+                    content: SingleChildScrollView(
+                      child: Text(
+                        '${ending?.summary}\n\n${ending?.epilogue}',
+                        style: const TextStyle(height: 1.4),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Continuar investigando'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )),
+        const SizedBox(height: 12),
+        OutlinedButton(
+          onPressed: () {
+            final ending = engine.evaluateEnding(accusedId: null);
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                backgroundColor: OsisTheme.bgElevated,
+                title: Text('FINAL ${ending?.code}'),
+                content: Text(ending?.epilog
