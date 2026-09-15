@@ -7,17 +7,82 @@
     "deviceCaseId": "case_001",
     "ownerName": "Marina Alves",
     "ownerRelation": "Vítima — jornalista",
-    "tagline": "O aparelho encontrado no São Lucas.",
+    "tagline": "O aparelho encontrado no São Lucas. Arquivos, R. e Aurora.",
     "lockPin": "0912",
     "lockHint": "Mês + algo que ela nunca esqueceu"
   },
   "deviceB": {
     "deviceCaseId": "case_001_device_b",
     "ownerName": "Camila Duarte",
-    "ownerRelation": "Colega de redação",
-    "tagline": "O celular de quem marcou o encontro.",
+    "ownerRelation": "Colega de redação — sob pressão",
+    "tagline": "O celular de quem marcou o encontro. Culpa, Bruno e o estacionamento.",
     "lockPin": "2308",
-    "lockHint": "Dia + mês do encontro"
+    "lockHint": "Dia + mês do encontro que ela não quer lembrar"
   },
-  "crossClues": []
+  "crossClues": [
+    {
+      "id": "CROSS_TIME_PARKING",
+      "kind": "temporal",
+      "title": "O horário do estacionamento",
+      "deduction": "Marina falava em 23:30. Camila já estava no São Lucas às 23:24. O encontro foi armado — não espontâneo.",
+      "requiresClueIds": ["CLUE_NOTE_IF", "CLUE_B_LOC_PARKING"],
+      "revealsClueIds": ["CLUE_CROSS_LURE_TIME"],
+      "scoreBonus": 12
+    },
+    {
+      "id": "CROSS_BRUNO_ALIBI",
+      "kind": "contradiction",
+      "title": "Álibi de Bruno inválido",
+      "deduction": "Bruno disse à Marina que estava em reunião. No celular de Camila, ele manda ir ao pilar B às 23:20.",
+      "requiresClueIds": ["CLUE_BRUNO_PRESSURE", "CLUE_B_BRUNO_ORDER"],
+      "revealsClueIds": ["CLUE_CROSS_BRUNO_LIE"],
+      "scoreBonus": 14
+    },
+    {
+      "id": "CROSS_CAR_PLATE",
+      "kind": "visual",
+      "title": "A mesma placa",
+      "deduction": "A foto parcial no celular de Marina casa com a foto nítida no de Camila — frota ValeLog no São Lucas.",
+      "requiresClueIds": ["CLUE_PHOTO_PLATE", "CLUE_B_PHOTO_CAR"],
+      "revealsClueIds": ["CLUE_BRUNO_CAR"],
+      "scoreBonus": 10
+    },
+    {
+      "id": "CROSS_RITA_KEY",
+      "kind": "cryptographic",
+      "title": "Aniversário de R.",
+      "deduction": "Camila anotou 0403. No aparelho de Marina, a nota RO e a pasta Aurora usam exatamente essa chave.",
+      "requiresClueIds": ["CLUE_NOTE_R", "CLUE_B_RITA_BDAY"],
+      "revealsClueIds": ["CLUE_CROSS_AURORA_KEY"],
+          "unlockContentIds": ["f1"],
+      "scoreBonus": 11
+    },
+    {
+      "id": "CROSS_DANIEL_COVER",
+      "kind": "confirmation",
+      "title": "Daniel cobria os dois lados",
+      "deduction": "E-mail de Daniel pedindo para segurar a matéria + áudio de Camila em que ele diz 'faz o que o Bruno mandar'.",
+      "requiresClueIds": ["CLUE_EMAIL_DANIEL", "CLUE_B_AUDIO_DANIEL"],
+      "revealsClueIds": ["CLUE_DANIEL_MONEY"],
+      "scoreBonus": 12
+    },
+    {
+      "id": "CROSS_SEQUENCE",
+      "kind": "sequential",
+      "title": "A sequência completa",
+      "deduction": "Bruno ordena → Camila atrai → linha 1717 → São Lucas → localização off → acesso remoto. O quadro fecha.",
+      "requiresClueIds": ["CLUE_CROSS_BRUNO_LIE", "CLUE_CROSS_LURE_TIME", "CLUE_CALL_UNKNOWN", "CLUE_REMOTE_ACCESS"],
+      "revealsClueIds": ["CLUE_SEQUENCE"],
+      "scoreBonus": 18
+    },
+    {
+      "id": "CROSS_EMOTIONAL_GUILT",
+      "kind": "emotional",
+      "title": "Camila não matou — mas levou",
+      "deduction": "A nota de culpa de Camila + a mensagem de Marina 'o estacionamento não foi escolha minha' provam coação, não autoria.",
+      "requiresClueIds": ["CLUE_NOTE_IF", "CLUE_B_GUILT_NOTE"],
+      "revealsClueIds": ["CLUE_CAMILA_LURE"],
+      "scoreBonus": 10
+    }
+  ]
 }
