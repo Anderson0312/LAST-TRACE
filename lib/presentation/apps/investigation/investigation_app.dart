@@ -279,4 +279,120 @@ class _InvestigationAppState extends State<InvestigationApp>
     );
   }
 
-  void _pick(String id
+  void _pick(String id) {
+    setState(() {
+      if (_selectedA == null) {
+        _selectedA = id;
+      } else if (_selectedB == null && id != _selectedA) {
+        _selectedB = id;
+      } else {
+        _selectedA = id;
+        _selectedB = null;
+      }
+    });
+  }
+
+  IconData _tagIcon(NoteTag t) {
+    switch (t) {
+      case NoteTag.suspect:
+        return Icons.person_search;
+      case NoteTag.evidence:
+        return Icons.fingerprint;
+      case NoteTag.theory:
+        return Icons.lightbulb_outline;
+      case NoteTag.location:
+        return Icons.place;
+      case NoteTag.question:
+        return Icons.help_outline;
+      case NoteTag.other:
+        return Icons.notes;
+    }
+  }
+
+  Future<void> _addNote(GameEngine engine) async {
+    final text = TextEditingController();
+    var tag = NoteTag.theory;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: OsisTheme.bgElevated,
+        title: const Text('Anotação'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: text, maxLines: 3),
+            DropdownButtonFormField<NoteTag>(
+              initialValue: tag,
+              items: NoteTag.values
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) tag = v;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Salvar')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (ok == true && text.text.trim().isNotEmpty) {
+      engine.addInvestigatorNote(text.text.trim(), tag);
+      await autosave(context);
+    }
+  }
+
+  Widget _clues(GameEngine engine, CoopEngine coop) {
+    final clues = engine.c.clues
+        .where((c) => engine.progress.discoveredClues.contains(c.id))
+        .toList();
+    return ListView.builder(
+      itemCount: clues.length,
+      itemBuilder: (_, i) {
+        final c = clues[i];
+        final shared = coop.isCoop && coop.sharedClueIds.contains(c.id);
+        return ListTile(
+          leading: Icon(
+            Icons.circle,
+            size: 12,
+            color: c.importance == ClueImportance.critical
+                ? OsisTheme.danger
+                : OsisTheme.accent,
+          ),
+          title: Text(c.name),
+          subtitle: Text('${c.origin}\n${c.content}', maxLines: 3),
+          isThreeLine: true,
+          trailing: coop.isCoop
+              ? IconButton(
+                  tooltip: shared
+                      ? 'Já compartilhada'
+                      : 'Compartilhar (${coop.encodeShareCode(c.id)})',
+                  icon: Icon(
+                    shared ? Icons.check_circle : Icons.ios_share,
+                    color: shared ? Colors.greenAccent : OsisTheme.accent,
+                  ),
+                  onPressed: shared
+                      ? null
+                      : () async {
+                          final item = await coop.shareClue(c.id);
+                          if (!mounted || item == null) return;
+                          final code = coop.encodeShareCode(c.id);
+                          await Clipboard.setData(ClipboardData(text: code));
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Compartilhada. Código para o parceiro: $code',
+                              ),
+                            ),
+                          );
+                        },
+                )
+              : (engine.debugMode
