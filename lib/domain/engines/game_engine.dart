@@ -193,4 +193,130 @@ class GameEngine extends ChangeNotifier {
     revealFromContent(puzzle.relatedClueIds);
     _applyUnlockRules();
     _recomputeScores();
-   
+    notifyListeners();
+    return true;
+  }
+
+  void markContradiction(String id) {
+    final contra = c.contradictions.where((e) => e.id == id).firstOrNull;
+    if (contra == null) return;
+    final hasEvidence =
+        contra.evidenceClueIds.every(progress.discoveredClues.contains);
+    if (!hasEvidence) return;
+    progress.markedContradictions.add(id);
+    revealFromContent(contra.revealsClueIds);
+    _recomputeScores();
+    notifyListeners();
+  }
+
+  void addBoardConnection(String fromId, String toId, {String? label}) {
+    progress.boardConnections.add(BoardConnection(
+      id: _uuid.v4(),
+      fromId: fromId,
+      toId: toId,
+      label: label,
+    ));
+    notifyListeners();
+  }
+
+  void removeBoardConnection(String id) {
+    progress.boardConnections.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void addInvestigatorNote(String text, NoteTag tag) {
+    progress.investigatorNotes.insert(
+      0,
+      InvestigatorNote(id: _uuid.v4(), text: text, tag: tag),
+    );
+    notifyListeners();
+  }
+
+  void pushNotification(PhoneNotification n) {
+    notifications.insert(0, n);
+    revealFromContent(n.revealsClueIds);
+    islandState = IslandState.notification;
+    islandLabel = n.title;
+    notifyListeners();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (islandState == IslandState.notification) {
+        islandState = IslandState.idle;
+        islandLabel = '';
+        notifyListeners();
+      }
+    });
+  }
+
+  void setIsland(IslandState state, String label) {
+    islandState = state;
+    islandLabel = label;
+    notifyListeners();
+  }
+
+  void setFlag(String key, dynamic value) {
+    progress.flags[key] = value;
+    notifyListeners();
+  }
+
+  bool getFlag(String key) => progress.flags[key] == true;
+
+  void triggerRemoteAccess() {
+    if (progress.remoteAccessDetected) return;
+    progress = progress.copyWith(
+      remoteAccessDetected: true,
+      batteryPercent: (progress.batteryPercent - 6).clamp(1, 100),
+    );
+    progress.flags['unknown_device'] = true;
+    discoverClue('CLUE_REMOTE_ACCESS');
+    pushNotification(PhoneNotification(
+      id: _uuid.v4(),
+      appId: 'settings',
+      title: 'OSIS Segurança',
+      body: 'Acesso remoto detectado',
+      revealsClueIds: const ['CLUE_REMOTE_ACCESS'],
+    ));
+    setIsland(IslandState.unknownActivity, 'atividade desconhecida');
+  }
+
+  void _applyUnlockRules() {
+    for (final rule in c.unlockRules) {
+      final have = rule.requiredClueIds.where(progress.discoveredClues.contains).length;
+      final need = rule.minRequired > 0 ? rule.minRequired : rule.requiredClueIds.length;
+      if (have < need) continue;
+      for (final id in rule.unlockClueIds) {
+        progress.discoveredClues.add(id);
+      }
+      for (final id in rule.unlockTimelineIds) {
+        progress.unlockedTimeline.add(id);
+      }
+      for (final id in rule.unlockContentIds) {
+        progress.unlockedContent.add(id);
+      }
+      if (rule.notificationText != null &&
+          !progress.flags.containsKey('rule_notif_${rule.id}')) {
+        progress.flags['rule_notif_${rule.id}'] = true;
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: 'system',
+          title: 'Arquivo recuperado',
+          body: rule.notificationText!,
+        ));
+      }
+    }
+  }
+
+  void _recomputeScores() {
+    final totalClues = c.clues.where((e) => !e.isRedHerring).length;
+    final found = c.clues
+        .where((e) => !e.isRedHerring && progress.discoveredClues.contains(e.id))
+        .length;
+    final cluePct = totalClues == 0 ? 0.0 : found / totalClues;
+
+    final totalTl = c.timeline.length;
+    final foundTl = c.timeline.where(isTimelineVisible).length;
+    final tlPct = totalTl == 0 ? 0.0 : foundTl / totalTl;
+
+    final critical = c.clues.where((e) => e.importance == ClueImportance.critical);
+    final critFound =
+        critical.where((e) => progress.discoveredClues.contains(e.id)).length;
+    final evidence = critical.isEmpty ? 0.0 : critFound / critical.
