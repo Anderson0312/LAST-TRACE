@@ -319,4 +319,122 @@ class GameEngine extends ChangeNotifier {
     final critical = c.clues.where((e) => e.importance == ClueImportance.critical);
     final critFound =
         critical.where((e) => progress.discoveredClues.contains(e.id)).length;
-    final evidence = critical.isEmpty ? 0.0 : critFound / critical.
+    final evidence = critical.isEmpty ? 0.0 : critFound / critical.length;
+
+    final contraPct = c.contradictions.isEmpty
+        ? 0.0
+        : progress.markedContradictions.length / c.contradictions.length;
+
+    final score = (cluePct * 40) + (tlPct * 25) + (evidence * 25) + (contraPct * 10);
+
+    progress = progress.copyWith(
+      clueCompletion: cluePct,
+      timelineCompletion: tlPct,
+      evidenceQuality: evidence,
+      investigationScore: score,
+    );
+  }
+
+  void setReduceMotion(bool v) {
+    reduceMotion = v;
+    notifyListeners();
+  }
+
+  void setHaptics(bool v) {
+    hapticsEnabled = v;
+    notifyListeners();
+  }
+
+  void setFontScale(double v) {
+    fontScale = v;
+    notifyListeners();
+  }
+
+  void startLiveLoop() {
+    _liveTimer?.cancel();
+    _liveTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (progress.deviceUnlocked && progress.chosenEndingId == null) {
+        progress = progress.copyWith(
+          playSeconds: progress.playSeconds + 4,
+        );
+        _syncDyingBattery();
+      }
+      _checkLiveEvents(trigger: 'time');
+      _checkLiveEvents(trigger: 'progress');
+      notifyListeners();
+    });
+  }
+
+  void stopLiveLoop() {
+    _liveTimer?.cancel();
+  }
+
+  /// Contagem restante (uso interno / Quadro).
+  String get remainingClockLabel {
+    final s = progress.remainingSeconds;
+    final m = (s ~/ 60).toString().padLeft(2, '0');
+    final r = (s % 60).toString().padLeft(2, '0');
+    return '$m:$r';
+  }
+
+  /// Nível narrativo da bateria (cai ao longo dos 30 min).
+  int get narrativeBatteryLevel => progress.batteryPercent;
+
+  /// Dica contextual com base no que ainda falta descobrir.
+  String? get suggestedNextHint {
+    if (!progress.deviceUnlocked || caseData == null) return null;
+    if (progress.chosenEndingId != null) return null;
+    final d = progress.discoveredClues;
+    bool miss(String id) => !d.contains(id);
+
+    if (miss('CLUE_LAST_MSG') ||
+        miss('CLUE_RAFAEL_WHERE') ||
+        miss('CLUE_MSG_DELETED')) {
+      return 'Abra o WhatsApp e leia as conversas recentes — especialmente Rafael e R.';
+    }
+    if (miss('CLUE_PARKING') || miss('CLUE_LOC_OFF') || miss('CLUE_LOC_RESTAURANT')) {
+      return 'Confira Mapas e Ajustes → Localização. O aparelho foi achado no São Lucas.';
+    }
+    if (miss('CLUE_CALL_UNKNOWN') ||
+        miss('CLUE_CALL_DANIEL') ||
+        miss('CLUE_VOICEMAIL')) {
+      return 'Abra Chamadas: há uma linha desconhecida e um correio de voz.';
+    }
+    if (miss('CLUE_NOTE_IF') || miss('CLUE_NOTE_R') || miss('CLUE_R_THREAD')) {
+      return 'Notas e Contatos: procure "R." e a anotação "se alguma coisa acontecer".';
+    }
+    if (miss('CLUE_EMAIL_DANIEL') ||
+        miss('CLUE_FILE_AURORA') ||
+        miss('CLUE_CONTRACT_AURORA')) {
+      return 'Mail e Arquivos: procure Aurora, contratos e e-mails do Daniel.';
+    }
+    if (miss('CLUE_PHOTO_PLATE') ||
+        miss('CLUE_PHOTO_REFLECTION') ||
+        miss('CLUE_META_MISMATCH')) {
+      return 'Galeria: toque nas fotos e explore os pontos quentes (placa, reflexo, metadados).';
+    }
+    if (miss('CLUE_REMOTE_ACCESS') || miss('CLUE_FILE_DAT')) {
+      return 'Ajustes / Arquivos: arquivo_00017.dat e sinais de acesso remoto.';
+    }
+    if (progress.investigationScore < 55) {
+      return 'Monte o Quadro: ligue pistas, marque contradições e depois vá em Conclusão.';
+    }
+    return 'Você já tem material. Abra Quadro → Conclusão e escolha quem acusar.';
+  }
+
+  /// Drena a bateria conforme o tempo de jogo — sem cronômetro na Island.
+  void _syncDyingBattery() {
+    if (!progress.deviceUnlocked || progress.chosenEndingId != null) return;
+
+    final start = (caseData?.osState['battery'] as int?) ?? 87;
+    final t = progress.timePressure.clamp(0.0, 1.0);
+    // Queda lenta no começo, acelerada no final (celular “morrendo”).
+    final drain = math.pow(t, 1.35).toDouble();
+    var level = (start * (1.0 - drain)).round();
+    if (progress.remoteAccessDetected) {
+      level -= 8;
+    }
+    if (t >= 0.92) {
+      level = math.min(level, 4);
+    } else if (t >= 0.78) {
+      le
