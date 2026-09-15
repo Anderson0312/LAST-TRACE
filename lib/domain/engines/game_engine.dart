@@ -545,4 +545,63 @@ class GameEngine extends ChangeNotifier {
     // Dispara só se nenhuma das pistas listadas foi encontrada.
     if (cond['missingAllClues'] is List) {
       final list = (cond['missingAllClues'] as List).cast<String>();
-      if (list.any(progress.discoveredCl
+      if (list.any(progress.discoveredClues.contains)) return false;
+    }
+    if (cond['appId'] != null && extra?['appId'] != cond['appId']) return false;
+    if (cond['deviceUnlocked'] == true && !progress.deviceUnlocked) return false;
+    if (cond['openedConversation'] != null &&
+        !progress.openedConversations.contains(cond['openedConversation'])) {
+      return false;
+    }
+    if (cond['endingChosen'] == false && progress.chosenEndingId != null) {
+      return false;
+    }
+    return true;
+  }
+
+  void _fireLiveEvent(LiveEvent ev) {
+    switch (ev.type) {
+      case 'notification':
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: ev.payload['appId'] as String? ?? 'system',
+          title: ev.payload['title'] as String? ?? '',
+          body: ev.payload['body'] as String? ?? '',
+          revealsClueIds:
+              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
+        ));
+      case 'message':
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: 'pulse',
+          title: ev.payload['from'] as String? ?? 'Desconhecido',
+          body: ev.payload['body'] as String? ?? '',
+          revealsClueIds:
+              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
+        ));
+      case 'remote':
+        triggerRemoteAccess();
+      case 'island':
+        setIsland(
+          IslandState.values.firstWhere(
+            (e) => e.name == ev.payload['state'],
+            orElse: () => IslandState.notification,
+          ),
+          ev.payload['label'] as String? ?? '',
+        );
+      case 'battery':
+        progress = progress.copyWith(
+          batteryPercent: ev.payload['percent'] as int? ?? progress.batteryPercent,
+        );
+        notifyListeners();
+      default:
+        break;
+    }
+    for (final l in _liveListeners) {
+      l(ev);
+    }
+  }
+
+  Ending? evaluateEnding({String? accusedId}) {
+    final accused = accusedId ?? progress.accusedCharacterId;
+    progress = progress
