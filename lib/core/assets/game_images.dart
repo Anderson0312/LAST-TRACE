@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 
 /// Caminhos padronizados dos assets visuais do caso.
 class GameImages {
-  static String photo(String photoId) => 'assets/images/photos/$photoId.jpg';
+  static String photo(String photoId) {
+    final n = int.tryParse(photoId.replaceFirst('ph', ''));
+    if (n != null && n <= 13) {
+      return 'assets/images/photos/$photoId.jpeg';
+    }
+    return 'assets/images/photos/$photoId.jpg';
+  }
 
   static String avatar(String characterId) =>
-      'assets/images/avatars/$characterId.jpg';
+      'assets/images/avatars/$characterId.jpeg';
 
-  static String wallpaper(String key) => 'assets/images/wallpapers/$key.jpg';
+  static String wallpaper(String key) => 'assets/images/wallpapers/$key.jpeg';
 }
 
 /// Imagem de asset com fallback se o arquivo ainda não existir.

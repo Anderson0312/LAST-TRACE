@@ -396,3 +396,311 @@ class _InvestigationAppState extends State<InvestigationApp>
                         },
                 )
               : (engine.debugMode
+                  ? IconButton(
+                      tooltip: 'Debug: revelar tudo',
+                      icon: const Icon(Icons.bug_report, color: Colors.white38),
+                      onPressed: engine.debugUnlockAll,
+                    )
+                  : null),
+        );
+      },
+    );
+  }
+
+  Widget _timeline(GameEngine engine, DateFormat fmt) {
+    final events = engine.c.timeline.where(engine.isTimelineVisible).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    if (events.isEmpty) {
+      return const Center(
+        child: Text('A timeline ainda está vazia.',
+            style: TextStyle(color: Colors.white54)),
+      );
+    }
+    return ListView.builder(
+      itemCount: events.length,
+      itemBuilder: (_, i) {
+        final e = events[i];
+        return ListTile(
+          leading: const Icon(Icons.timeline, size: 18),
+          title: Text(e.description),
+          subtitle: Text('${fmt.format(e.timestamp)} · ${e.source}'),
+        );
+      },
+    );
+  }
+
+  Widget _contras(GameEngine engine) {
+    final items = engine.c.contradictions;
+    if (items.isEmpty) {
+      return const Center(
+        child: Text('Nenhuma contradição catalogada.',
+            style: TextStyle(color: Colors.white54)),
+      );
+    }
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (_, i) {
+        final c = items[i];
+        final marked = engine.progress.markedContradictions.contains(c.id);
+        final ready =
+            c.evidenceClueIds.every(engine.progress.discoveredClues.contains);
+        return ListTile(
+          leading: Icon(
+            marked ? Icons.check_circle : Icons.report_gmailerrorred_outlined,
+            color: marked ? Colors.greenAccent : OsisTheme.danger,
+          ),
+          title: Text(c.statement),
+          subtitle: Text(
+            marked
+                ? c.resolution
+                : ready
+                    ? 'Evidência suficiente. Toque para marcar.'
+                    : 'Ainda faltam pistas para confrontar.',
+          ),
+          onTap: ready && !marked
+              ? () {
+                  engine.markContradiction(c.id);
+                  autosave(context);
+                }
+              : null,
+        );
+      },
+    );
+  }
+
+  Widget _coopPanel(GameEngine engine, CoopEngine coop) {
+    final shared = coop.room?.sharedEvidence ?? const [];
+    final pending = coop.pendingCrossClues;
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        const Text('Evidências compartilhadas',
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        if (shared.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('Nada compartilhado ainda.',
+                style: TextStyle(color: Colors.white54)),
+          ),
+        ...shared.map((e) => ListTile(
+              dense: true,
+              title: Text(e.title),
+              subtitle: Text(e.summary, maxLines: 2),
+              onTap: () {
+                if (_linkFrom == null) {
+                  setState(() => _linkFrom = e.clueId);
+                } else if (_linkFrom != e.clueId) {
+                  coop.linkShared(_linkFrom!, e.clueId);
+                  setState(() => _linkFrom = null);
+                }
+              },
+            )),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _importCtrl,
+          decoration: InputDecoration(
+            labelText: 'Importar código do parceiro',
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.login),
+              onPressed: () async {
+                final ok = await coop.importShareCode(_importCtrl.text);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(coop.lastToast ?? (ok ? 'OK' : 'Falha'))),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text('Cross-clues pendentes',
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        ...pending.map((c) => ListTile(
+              dense: true,
+              title: Text(c.title),
+              subtitle: Text(c.deduction, maxLines: 3),
+            )),
+        if (coop.lastToast != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(coop.lastToast!,
+                style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ),
+      ],
+    );
+  }
+
+  Widget _coopEnding(GameEngine engine, CoopEngine coop) {
+    final suspects = engine.c.characters
+        .where((c) =>
+            c.role == CharacterRole.suspect || c.role == CharacterRole.mysterious)
+        .toList();
+    final mine = coop.role == CoopRole.playerA
+        ? coop.room?.draftA
+        : coop.room?.draftB;
+    var suspectId = mine?.suspectId;
+    var motive = mine?.motive ?? '';
+    var place = mine?.place ?? '';
+    final ending = engine.c.endings
+        .where((e) => e.id == engine.progress.chosenEndingId)
+        .firstOrNull;
+
+    if (ending != null) {
+      return _endingCard(ending);
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('Acusação cooperativa',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        const SizedBox(height: 8),
+        const Text(
+          'Os dois lados precisam acusar a mesma pessoa, com o mesmo motivo e local.',
+          style: TextStyle(color: Colors.white54, fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        ...suspects.map((s) => RadioListTile<String>(
+              value: s.id,
+              groupValue: suspectId,
+              title: Text(s.name),
+              onChanged: (v) {
+                coop.updateDraft(
+                  (mine ?? AccusationDraft(role: coop.role!)).copyWith(
+                    suspectId: v,
+                    motive: motive,
+                    place: place,
+                  ),
+                );
+              },
+            )),
+        TextField(
+          controller: TextEditingController(text: motive),
+          decoration: const InputDecoration(labelText: 'Motivo'),
+          onSubmitted: (v) {
+            motive = v;
+            coop.updateDraft(
+              (mine ?? AccusationDraft(role: coop.role!)).copyWith(
+                suspectId: suspectId,
+                motive: v,
+                place: place,
+              ),
+            );
+          },
+        ),
+        TextField(
+          controller: TextEditingController(text: place),
+          decoration: const InputDecoration(labelText: 'Local'),
+          onSubmitted: (v) {
+            place = v;
+            coop.updateDraft(
+              (mine ?? AccusationDraft(role: coop.role!)).copyWith(
+                suspectId: suspectId,
+                motive: motive,
+                place: v,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: () {
+            final draft = (mine ?? AccusationDraft(role: coop.role!)).copyWith(
+              suspectId: suspectId,
+              motive: motive,
+              place: place,
+              locked: true,
+            );
+            coop.updateDraft(draft);
+          },
+          child: const Text('Travar minha acusação'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () async {
+            final result = await coop.tryConfirmConsensus();
+            if (!mounted) return;
+            if (result == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(coop.lastToast ?? 'Sem consenso ainda.')),
+              );
+            } else {
+              await autosave(context);
+            }
+          },
+          child: const Text('Confirmar consenso'),
+        ),
+      ],
+    );
+  }
+
+  Widget _ending(GameEngine engine) {
+    final chosen = engine.c.endings
+        .where((e) => e.id == engine.progress.chosenEndingId)
+        .firstOrNull;
+    if (chosen != null) return _endingCard(chosen);
+
+    final suspects = engine.c.characters
+        .where((c) =>
+            c.role == CharacterRole.suspect || c.role == CharacterRole.mysterious)
+        .toList();
+    String? accused = engine.progress.accusedCharacterId;
+
+    return StatefulBuilder(
+      builder: (context, setLocal) {
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text('Quem você acusa?',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(
+              'Score ${engine.progress.investigationScore.toStringAsFixed(0)}. '
+              'A acusação encerra o caso.',
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            ...suspects.map((s) => RadioListTile<String>(
+                  value: s.id,
+                  groupValue: accused,
+                  title: Text(s.name),
+                  subtitle: Text(s.profession ?? s.relationToVictim),
+                  onChanged: (v) => setLocal(() => accused = v),
+                )),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: accused == null
+                  ? null
+                  : () {
+                      engine.evaluateEnding(accusedId: accused);
+                      autosave(context);
+                    },
+              child: const Text('Confirmar acusação'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _endingCard(Ending ending) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Final ${ending.code}',
+              style: const TextStyle(color: OsisTheme.accent, letterSpacing: 1.2)),
+          const SizedBox(height: 8),
+          Text(ending.title,
+              style:
+                  const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(ending.summary, style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 16),
+          Text(ending.epilogue, style: const TextStyle(height: 1.45)),
+        ],
+      ),
+    );
+  }
+}

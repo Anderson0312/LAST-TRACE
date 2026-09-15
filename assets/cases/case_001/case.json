@@ -1,0 +1,2012 @@
+{
+  "id": "case_001",
+  "title": "A Última Mensagem",
+  "subtitle": "Marina Alves · 27 · jornalista",
+  "synopsis": "Marina Alves desaparece após enviar: «Eu descobri quem está por trás disso.» O VANTA é encontrado no Estacionamento São Lucas em 14/08.",
+  "victimId": "char_marina",
+  "deviceFoundAt": "2024-08-14T09:10:00",
+  "lockPin": "0912",
+  "lockHint": "Mês + algo que ela nunca esqueceu",
+  "osState": {
+    "battery": 87,
+    "wifi": true,
+    "bluetooth": true,
+    "carrier": "Nexa",
+    "deviceName": "VANTA S",
+    "osName": "OSIS 14.1",
+    "wallpaper": "dusk_harbor",
+    "lastChargeAt": "13/08 23:47",
+    "lastLocationUpdate": "13/08 23:28 — São Lucas (depois: off)",
+    "targetPlaySeconds": 1800
+  },
+  "settingsHints": {
+    "batteryDrop": "Queda anormal após 23:40. Possível sessão remota.",
+    "storageMystery": "arquivo_00017.dat oculto"
+  },
+  "characters": [
+    {
+      "id": "char_marina",
+      "name": "Marina Alves",
+      "age": 27,
+      "profession": "Jornalista investigativa",
+      "relationToVictim": "Vítima",
+      "role": "victim",
+      "initialSuspicion": 0,
+      "personality": "Obstinada",
+      "secrets": [
+        "Investigava contrato Aurora"
+      ]
+    },
+    {
+      "id": "char_rafael",
+      "name": "Rafael Mendes",
+      "age": 30,
+      "profession": "Designer",
+      "relationToVictim": "Ex-namorado",
+      "role": "suspect",
+      "initialSuspicion": 55,
+      "personality": "Ciumento",
+      "alibi": "Diz que estava no Lume",
+      "secrets": [
+        "Rastreava o celular dela"
+      ]
+    },
+    {
+      "id": "char_daniel",
+      "name": "Daniel Rocha",
+      "age": 38,
+      "profession": "Editor-chefe",
+      "relationToVictim": "Chefe",
+      "role": "suspect",
+      "initialSuspicion": 48,
+      "personality": "Cínico",
+      "secrets": [
+        "Recebeu 80 mil da AV Services"
+      ]
+    },
+    {
+      "id": "char_camila",
+      "name": "Camila Duarte",
+      "age": 29,
+      "profession": "Editora assistente",
+      "relationToVictim": "Colega de redação",
+      "role": "suspect",
+      "initialSuspicion": 35,
+      "personality": "Ansiosa",
+      "secrets": [
+        "Marcou o encontro no São Lucas"
+      ]
+    },
+    {
+      "id": "char_bruno",
+      "name": "Bruno Vale",
+      "age": 44,
+      "profession": "Empresário ValeLogística",
+      "relationToVictim": "Alvo da pauta Aurora",
+      "role": "suspect",
+      "initialSuspicion": 40,
+      "personality": "Controlador",
+      "alibi": "Reunião noturna",
+      "secrets": [
+        "Linha 1717",
+        "Mandou Camila ao pilar B"
+      ]
+    },
+    {
+      "id": "char_rita",
+      "name": "Rita Okamoto",
+      "age": 34,
+      "profession": "Analista ValeLog",
+      "relationToVictim": "Fonte anônima R.",
+      "role": "mysterious",
+      "initialSuspicion": 15,
+      "personality": "Discreta",
+      "secrets": [
+        "Vazou as planilhas Aurora"
+      ]
+    },
+    {
+      "id": "char_leo",
+      "name": "Leonardo Pires",
+      "age": 41,
+      "profession": "Segurança São Lucas",
+      "relationToVictim": "Testemunha",
+      "role": "witness",
+      "initialSuspicion": 8,
+      "personality": "Cauteloso",
+      "secrets": [
+        "Câmera do pilar B apagada"
+      ]
+    },
+    {
+      "id": "char_sofia",
+      "name": "Sofia Alves",
+      "age": 58,
+      "profession": "Aposentada",
+      "relationToVictim": "Mãe",
+      "role": "witness",
+      "initialSuspicion": 0,
+      "personality": "Protetora",
+      "secrets": []
+    },
+    {
+      "id": "char_unknown",
+      "name": "Não atender",
+      "age": null,
+      "profession": null,
+      "relationToVictim": "Linha 1717",
+      "role": "mysterious",
+      "initialSuspicion": 20,
+      "personality": "Silêncio",
+      "secrets": [
+        "Pré-pago de Bruno"
+      ]
+    }
+  ],
+  "contacts": [
+    {
+      "id": "char_rafael",
+      "name": "Rafael Mendes",
+      "phone": "+55 11 96666-8181",
+      "favorite": true,
+      "notes": "Ex. Não ligar depois das 22h."
+    },
+    {
+      "id": "char_camila",
+      "name": "Camila Duarte",
+      "phone": "+55 11 97771-3300",
+      "favorite": true
+    },
+    {
+      "id": "char_daniel",
+      "name": "Daniel Rocha",
+      "phone": "+55 11 97777-2211"
+    },
+    {
+      "id": "char_rita",
+      "name": "R.",
+      "phone": "+55 11 95555-0403",
+      "notes": "Fonte. Não salvar sob o nome real."
+    },
+    {
+      "id": "char_bruno",
+      "name": "Bruno Vale",
+      "phone": "+55 11 90000-1717"
+    },
+    {
+      "id": "char_sofia",
+      "name": "Sofia Alves",
+      "phone": "+55 11 98812-0001",
+      "favorite": true,
+      "notes": "Mãe"
+    },
+    {
+      "id": "char_leo",
+      "name": "Leonardo Pires",
+      "phone": "+55 11 93400-2210"
+    },
+    {
+      "id": "char_unknown",
+      "name": "Não atender",
+      "phone": "+55 11 90000-1717",
+      "notes": "Pré-pago. 1717."
+    }
+  ],
+  "clues": [
+    {
+      "id": "CLUE_LOCK_OPEN",
+      "name": "Dispositivo desbloqueado",
+      "type": "system",
+      "description": "Acesso ao VANTA",
+      "content": "O aparelho de Marina foi liberado.",
+      "origin": "OSIS",
+      "importance": "low",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_LAST_MSG",
+      "name": "Eu descobri quem está por trás disso",
+      "type": "message",
+      "description": "Última mensagem",
+      "content": "Marina enviou a frase e sumiu.",
+      "origin": "WhatsApp",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_RAFAEL_WHERE",
+      "name": "Rafael no Lume",
+      "type": "message",
+      "description": "Álibi",
+      "content": "Rafael insiste que estava no bar Lume às 23h.",
+      "origin": "WhatsApp · Rafael",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_MSG_DELETED",
+      "name": "Mensagem apagada",
+      "type": "message",
+      "description": "Recuperada",
+      "content": "Fragmento: 'não vá ao estacionamento sozinha'.",
+      "origin": "WhatsApp",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_PARKING",
+      "name": "Aparelho no São Lucas",
+      "type": "location",
+      "description": "Local do achado",
+      "content": "VANTA encontrado no Estacionamento São Lucas, pilar B.",
+      "origin": "Mapas / Ajustes",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_LOC_OFF",
+      "name": "Localização desligada",
+      "type": "system",
+      "description": "Ajustes",
+      "content": "GPS desligado às 23:28. Último ponto: São Lucas.",
+      "origin": "Ajustes",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_LOC_RESTAURANT",
+      "name": "Jantar no Lume",
+      "type": "location",
+      "description": "Histórico",
+      "content": "Marina esteve no Lume às 22:10 — não sozinha.",
+      "origin": "Mapas",
+      "importance": "medium",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CALL_UNKNOWN",
+      "name": "Ligação 23:41 — desconhecido",
+      "type": "call",
+      "description": "Pré-pago",
+      "content": "Chamada de +55 11 90000-1717. 41s. Sem identificação.",
+      "origin": "Telefone",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CALL_DANIEL",
+      "name": "Daniel liga às 21:02",
+      "type": "call",
+      "description": "Chefe",
+      "content": "Daniel cobra a pauta e pede para 'segurar'.",
+      "origin": "Telefone",
+      "importance": "medium",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_VOICEMAIL",
+      "name": "Correio de Camila",
+      "type": "audio",
+      "description": "Desculpa",
+      "content": "Camila: 'Desculpa. Eu não tinha escolha. Não vá.'",
+      "origin": "Correio de voz",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_NOTE_IF",
+      "name": "Se alguma coisa acontecer comigo",
+      "type": "note",
+      "description": "Nota",
+      "content": "Marina deixou instruções para abrir a pasta Aurora.",
+      "origin": "Notas",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_NOTE_R",
+      "name": "Lembrete: R. = RO",
+      "type": "note",
+      "description": "Identidade",
+      "content": "R. não é Rafael. Iniciais RO.",
+      "origin": "Notas",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_R_THREAD",
+      "name": "Contato R.",
+      "type": "message",
+      "description": "Fonte",
+      "content": "Thread curta com R. sobre planilhas.",
+      "origin": "Contatos / WhatsApp",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_EMAIL_RITA",
+      "name": "E-mail de Rita",
+      "type": "email",
+      "description": "Confirmação",
+      "content": "Rita Okamoto pede para Marina apagar o rastro.",
+      "origin": "Mail",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_R_IDENTITY",
+      "name": "R. é Rita Okamoto",
+      "type": "contradiction",
+      "description": "Reviravolta",
+      "content": "R. = Rita Okamoto, analista da ValeLog.",
+      "origin": "Quadro",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_EMAIL_DANIEL",
+      "name": "Segura a matéria",
+      "type": "email",
+      "description": "Pressão",
+      "content": "Daniel: a pauta Aurora não sobe.",
+      "origin": "Mail",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_FILE_AURORA",
+      "name": "Pasta Aurora",
+      "type": "file",
+      "description": "Contrato",
+      "content": "Planilha de superfaturamento ValeLog × prefeitura.",
+      "origin": "Arquivos",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CONTRACT_AURORA",
+      "name": "Contrato Aurora",
+      "type": "file",
+      "description": "PDF",
+      "content": "Cláusula 17: frota fantasma. Assinatura B. Vale.",
+      "origin": "Arquivos",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_PHOTO_PLATE",
+      "name": "Placa parcial",
+      "type": "photo",
+      "description": "Hotspot",
+      "content": "SUV preto, placa NEX-4A??, adesivo ValeLog.",
+      "origin": "Fotos",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_PHOTO_REFLECTION",
+      "name": "Reflexo de Camila",
+      "type": "photo",
+      "description": "Hotspot",
+      "content": "No vidro do Lume, Camila observa Marina.",
+      "origin": "Fotos",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_META_MISMATCH",
+      "name": "EXIF adulterado",
+      "type": "metadata",
+      "description": "Metadados",
+      "content": "Foto do estacionamento com hora 21:00; GPS 23:33.",
+      "origin": "Fotos",
+      "importance": "medium",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_REMOTE_ACCESS",
+      "name": "Acesso remoto",
+      "type": "system",
+      "description": "OSIS",
+      "content": "Sessão ativa via proxy AV Services.",
+      "origin": "Ajustes",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_FILE_DAT",
+      "name": "arquivo_00017.dat",
+      "type": "file",
+      "description": "Oculto",
+      "content": "Dump com timestamp 23:47 — última carga.",
+      "origin": "Arquivos",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CAL_EVENT",
+      "name": "Agenda 23:30",
+      "type": "timeline",
+      "description": "Calendário",
+      "content": "Encontro 'pauta' no São Lucas às 23:30.",
+      "origin": "Calendário",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_RECOVERED_FRAGMENT",
+      "name": "Backup Pulse",
+      "type": "file",
+      "description": "Lixeira",
+      "content": "Fragmento recuperado: 'Camila marcou. Não confia.'",
+      "origin": "Lixeira",
+      "importance": "medium",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_AUDIO_THREAT",
+      "name": "Ameaça gravada",
+      "type": "audio",
+      "description": "Ditafone",
+      "content": "'Você não deveria estar olhando isso.'",
+      "origin": "Ditafone",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_DANIEL_MONEY",
+      "name": "R$ 80.000 AV Services",
+      "type": "file",
+      "description": "Pix",
+      "content": "Comprovante para D. Rocha — AV Services.",
+      "origin": "Nubank",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_BRUNO_PRESSURE",
+      "name": "Pressão de Bruno",
+      "type": "message",
+      "description": "WhatsApp",
+      "content": "Bruno: reunião falsa. 'Cuide da jornalista.'",
+      "origin": "WhatsApp",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_BROWSER_LOC",
+      "name": "Busca estacionamento",
+      "type": "browser",
+      "description": "Safari",
+      "content": "Marina buscou 'Estacionamento São Lucas pilar B'.",
+      "origin": "Safari",
+      "importance": "medium",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_SOFIA_CALL",
+      "name": "Ligação da mãe 22:05",
+      "type": "call",
+      "description": "Família",
+      "content": "Sofia pede para Marina ir para casa.",
+      "origin": "Telefone",
+      "importance": "low",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_LEO_CAMERA",
+      "name": "Câmera apagada",
+      "type": "email",
+      "description": "Segurança",
+      "content": "Leo admite que o DVR do pilar B falhou 'por ordem'.",
+      "origin": "Mail",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_UNKNOWN_1717",
+      "name": "Linha 1717",
+      "type": "call",
+      "description": "Pré-pago",
+      "content": "O número 1717 aparece em Bruno e no desconhecido.",
+      "origin": "Telefone",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_AURORA_SHEETS",
+      "name": "Planilhas vazadas",
+      "type": "file",
+      "description": "xlsx",
+      "content": "Abas: frota fantasma, propina, AV Services.",
+      "origin": "Arquivos",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CAMILA_LURE",
+      "name": "Camila atraiu Marina",
+      "type": "contradiction",
+      "description": "Isca",
+      "content": "Camila marcou o São Lucas sob pressão.",
+      "origin": "Quadro",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_BRUNO_CAR",
+      "name": "Carro de Bruno no local",
+      "type": "photo",
+      "description": "Placa",
+      "content": "Frota ValeLog no São Lucas na noite do sumiço.",
+      "origin": "Fotos",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_SEQUENCE",
+      "name": "Sequência do crime",
+      "type": "contradiction",
+      "description": "Quadro",
+      "content": "Bruno ordena → Camila atrai → 1717 → loc off → remoto.",
+      "origin": "Quadro",
+      "importance": "critical",
+      "initialState": "hidden"
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conv_rafael",
+      "contactId": "char_rafael",
+      "displayName": "Rafael",
+      "unread": true,
+      "messages": [
+        {
+          "id": "m_r1",
+          "senderId": "char_rafael",
+          "kind": "text",
+          "body": "Onde você está? Não some de novo.",
+          "timestamp": "2024-08-13T21:40:00"
+        },
+        {
+          "id": "m_r2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Estou trabalhando. Para de rastrear meu celular.",
+          "timestamp": "2024-08-13T21:42:00"
+        },
+        {
+          "id": "m_r3",
+          "senderId": "char_rafael",
+          "kind": "text",
+          "body": "Eu estou no Lume. Vem. A gente conversa.",
+          "timestamp": "2024-08-13T22:05:00",
+          "revealsClueIds": [
+            "CLUE_RAFAEL_WHERE"
+          ]
+        },
+        {
+          "id": "m_r4",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Eu descobri quem está por trás disso.",
+          "timestamp": "2024-08-13T23:18:00",
+          "revealsClueIds": [
+            "CLUE_LAST_MSG"
+          ]
+        },
+        {
+          "id": "m_r5",
+          "senderId": "char_rafael",
+          "kind": "text",
+          "body": "Marina?? Responde.",
+          "timestamp": "2024-08-13T23:46:00"
+        }
+      ],
+      "revealsClueIds": [
+        "CLUE_LAST_MSG"
+      ]
+    },
+    {
+      "id": "conv_camila",
+      "contactId": "char_camila",
+      "displayName": "Camila Duarte",
+      "unread": true,
+      "messages": [
+        {
+          "id": "m_c1",
+          "senderId": "char_camila",
+          "kind": "text",
+          "body": "Consegue passar no São Lucas? 23:30. É sobre a pauta. Só nós.",
+          "timestamp": "2024-08-13T22:55:00",
+          "revealsClueIds": [
+            "CLUE_CAMILA_LURE"
+          ]
+        },
+        {
+          "id": "m_c2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Estranho marcar aí. Mas ok. Saindo do Lume.",
+          "timestamp": "2024-08-13T22:57:00"
+        },
+        {
+          "id": "m_c3",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Camila? Estou no pilar B. Cadê você?",
+          "timestamp": "2024-08-13T23:32:00"
+        },
+        {
+          "id": "m_c4",
+          "senderId": "char_camila",
+          "kind": "text",
+          "body": "Desculpa. Não posso falar agora.",
+          "timestamp": "2024-08-13T23:40:00"
+        },
+        {
+          "id": "m_c5",
+          "senderId": "char_camila",
+          "kind": "deleted",
+          "body": "",
+          "timestamp": "2024-08-13T22:48:00",
+          "isDeleted": true,
+          "deletedPreview": "não vá ao estacionamento sozinha",
+          "revealsClueIds": [
+            "CLUE_MSG_DELETED"
+          ]
+        }
+      ],
+      "revealsClueIds": [
+        "CLUE_CAMILA_LURE"
+      ]
+    },
+    {
+      "id": "conv_daniel",
+      "contactId": "char_daniel",
+      "displayName": "Daniel Rocha",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_d1",
+          "senderId": "char_daniel",
+          "kind": "text",
+          "body": "A pauta Aurora não sobe. Entendeu?",
+          "timestamp": "2024-08-13T16:40:00",
+          "revealsClueIds": [
+            "CLUE_EMAIL_DANIEL"
+          ]
+        },
+        {
+          "id": "m_d2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Eu tenho documento. Não é opinião.",
+          "timestamp": "2024-08-13T16:42:00"
+        },
+        {
+          "id": "m_d3",
+          "senderId": "char_daniel",
+          "kind": "text",
+          "body": "Então esquece o documento. Bruno não brinca.",
+          "timestamp": "2024-08-13T16:43:00",
+          "revealsClueIds": [
+            "CLUE_BRUNO_PRESSURE"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conv_rita",
+      "contactId": "char_rita",
+      "displayName": "R.",
+      "unread": true,
+      "messages": [
+        {
+          "id": "m_ri1",
+          "senderId": "char_rita",
+          "kind": "text",
+          "body": "Apague o rastro. RO. 0403 é a chave.",
+          "timestamp": "2024-08-12T11:02:00",
+          "revealsClueIds": [
+            "CLUE_R_THREAD",
+            "CLUE_NOTE_R"
+          ]
+        },
+        {
+          "id": "m_ri2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Recebi as planilhas. Obrigada.",
+          "timestamp": "2024-08-12T11:10:00"
+        },
+        {
+          "id": "m_ri3",
+          "senderId": "char_rita",
+          "kind": "text",
+          "body": "Se alguma coisa acontecer, a pasta está no Files.",
+          "timestamp": "2024-08-13T09:14:00",
+          "revealsClueIds": [
+            "CLUE_NOTE_IF"
+          ]
+        }
+      ],
+      "revealsClueIds": [
+        "CLUE_R_THREAD"
+      ]
+    },
+    {
+      "id": "conv_bruno",
+      "contactId": "char_bruno",
+      "displayName": "Bruno Vale",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_b1",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "Sua matéria é ficção. Estou em reunião até meia-noite.",
+          "timestamp": "2024-08-13T20:10:00",
+          "revealsClueIds": [
+            "CLUE_BRUNO_PRESSURE"
+          ]
+        },
+        {
+          "id": "m_b2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Reunião com quem? A frota fantasma também foi?",
+          "timestamp": "2024-08-13T20:12:00"
+        },
+        {
+          "id": "m_b3",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "Cuidado com o que publica, Marina.",
+          "timestamp": "2024-08-13T20:13:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_sofia",
+      "contactId": "char_sofia",
+      "displayName": "Mãe",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_s1",
+          "senderId": "char_sofia",
+          "kind": "text",
+          "body": "Liga pra mim. Está tarde.",
+          "timestamp": "2024-08-13T22:06:00",
+          "revealsClueIds": [
+            "CLUE_SOFIA_CALL"
+          ]
+        },
+        {
+          "id": "m_s2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Já já. Trabalho.",
+          "timestamp": "2024-08-13T22:08:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_leo",
+      "contactId": "char_leo",
+      "displayName": "Leo Segurança",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_l1",
+          "senderId": "char_leo",
+          "kind": "text",
+          "body": "A câmera do B caiu. Disseram manutenção.",
+          "timestamp": "2024-08-13T23:50:00",
+          "revealsClueIds": [
+            "CLUE_LEO_CAMERA"
+          ]
+        },
+        {
+          "id": "m_l2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Quem mandou?",
+          "timestamp": "2024-08-13T23:51:00"
+        },
+        {
+          "id": "m_l3",
+          "senderId": "char_leo",
+          "kind": "text",
+          "body": "Não posso falar daqui.",
+          "timestamp": "2024-08-13T23:52:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_unknown",
+      "contactId": "char_unknown",
+      "displayName": "Não atender",
+      "unread": true,
+      "messages": [
+        {
+          "id": "m_u1",
+          "senderId": "char_unknown",
+          "kind": "text",
+          "body": "Você não deveria estar olhando isso.",
+          "timestamp": "2024-08-13T23:41:00",
+          "revealsClueIds": [
+            "CLUE_CALL_UNKNOWN",
+            "CLUE_AUDIO_THREAT"
+          ]
+        }
+      ],
+      "revealsClueIds": [
+        "CLUE_CALL_UNKNOWN"
+      ]
+    },
+    {
+      "id": "conv_grupo",
+      "contactId": "char_daniel",
+      "displayName": "Redação CN",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_g1",
+          "senderId": "char_daniel",
+          "kind": "text",
+          "body": "Ninguém publica Aurora sem meu ok.",
+          "timestamp": "2024-08-13T18:00:00"
+        },
+        {
+          "id": "m_g2",
+          "senderId": "char_camila",
+          "kind": "text",
+          "body": "Marina, fala comigo antes de sair.",
+          "timestamp": "2024-08-13T18:02:00"
+        },
+        {
+          "id": "m_g3",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Eu vou fechar a pauta hoje.",
+          "timestamp": "2024-08-13T18:05:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_av",
+      "contactId": "char_bruno",
+      "displayName": "AV Services",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_a1",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "Pagamento confirmado. D. Rocha.",
+          "timestamp": "2024-08-10T10:00:00",
+          "revealsClueIds": [
+            "CLUE_DANIEL_MONEY"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conv_intern",
+      "contactId": "char_camila",
+      "displayName": "Estagiária Lia",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_i1",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Manda o clipping do ValeLog.",
+          "timestamp": "2024-08-13T11:00:00"
+        },
+        {
+          "id": "m_i2",
+          "senderId": "char_camila",
+          "kind": "text",
+          "body": "Lia está de folga. Eu mando.",
+          "timestamp": "2024-08-13T11:04:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_bank",
+      "contactId": "char_marina",
+      "displayName": "NexoBank",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_k1",
+          "senderId": "char_unknown",
+          "kind": "text",
+          "body": "Fatura disponível. Nenhum Pix 80k na sua conta.",
+          "timestamp": "2024-08-13T09:00:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_entregador",
+      "contactId": "char_unknown",
+      "displayName": "Entrega Lume",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_e1",
+          "senderId": "char_unknown",
+          "kind": "text",
+          "body": "Pedido 22:18 — mesa 4, duas pessoas.",
+          "timestamp": "2024-08-13T22:20:00",
+          "revealsClueIds": [
+            "CLUE_LOC_RESTAURANT"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conv_fonte",
+      "contactId": "char_rita",
+      "displayName": "Fonte antiga",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_f1",
+          "senderId": "char_rita",
+          "kind": "text",
+          "body": "Arquivado: não use meu nome.",
+          "timestamp": "2024-08-01T08:00:00"
+        }
+      ]
+    },
+    {
+      "id": "conv_spam",
+      "contactId": "char_unknown",
+      "displayName": "OSIS Promo",
+      "unread": false,
+      "messages": [
+        {
+          "id": "m_p1",
+          "senderId": "char_unknown",
+          "kind": "text",
+          "body": "Atualize o sistema.",
+          "timestamp": "2024-08-12T12:00:00"
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "id": "ph1",
+      "title": "Lume — mesa",
+      "caption": "22:14",
+      "visualDescription": "Bar escuro, dois copos, reflexo no vidro",
+      "takenAt": "2024-08-13T22:14:00",
+      "locationName": "Bar Lume",
+      "colorSeed": "21",
+      "revealsClueIds": [
+        "CLUE_PHOTO_REFLECTION"
+      ],
+      "hotspots": [
+        {
+          "id": "h1",
+          "x": 0.7,
+          "y": 0.4,
+          "w": 0.15,
+          "h": 0.15,
+          "label": "Reflexo",
+          "revealsClueIds": [
+            "CLUE_PHOTO_REFLECTION"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ph2",
+      "title": "Contrato print",
+      "caption": "Aurora p.1",
+      "visualDescription": "Documento com logo ValeLog",
+      "takenAt": "2024-08-13T19:40:00",
+      "isScreenshot": true,
+      "colorSeed": "44",
+      "revealsClueIds": [
+        "CLUE_CONTRACT_AURORA"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph3",
+      "title": "Pilar B",
+      "caption": "Cheguei",
+      "visualDescription": "Estacionamento vazio, luz amarela",
+      "takenAt": "2024-08-13T23:31:00",
+      "metadataTakenAt": "2024-08-13T21:00:00",
+      "locationName": "Estacionamento São Lucas",
+      "colorSeed": "71",
+      "revealsClueIds": [
+        "CLUE_PARKING",
+        "CLUE_META_MISMATCH"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph4",
+      "title": "SUV na rampa",
+      "caption": "Quem é?",
+      "visualDescription": "SUV preto, placa parcial, adesivo ValeLog",
+      "takenAt": "2024-08-13T23:33:00",
+      "locationName": "Estacionamento São Lucas",
+      "colorSeed": "18",
+      "revealsClueIds": [
+        "CLUE_PHOTO_PLATE"
+      ],
+      "hotspots": [
+        {
+          "id": "h2",
+          "x": 0.6,
+          "y": 0.55,
+          "w": 0.14,
+          "h": 0.12,
+          "label": "Placa",
+          "revealsClueIds": [
+            "CLUE_PHOTO_PLATE",
+            "CLUE_BRUNO_CAR"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ph5",
+      "title": "Selfie redação",
+      "caption": "Camila ao fundo",
+      "visualDescription": "Marina na redação, Camila tensa",
+      "takenAt": "2024-08-13T17:10:00",
+      "colorSeed": "33",
+      "revealsClueIds": [],
+      "hotspots": []
+    },
+    {
+      "id": "ph6",
+      "title": "Print Pix",
+      "caption": "80 mil",
+      "visualDescription": "Comprovante AV Services → D. Rocha",
+      "takenAt": "2024-08-11T10:00:00",
+      "isScreenshot": true,
+      "colorSeed": "09",
+      "revealsClueIds": [
+        "CLUE_DANIEL_MONEY"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph7",
+      "title": "Nota R.",
+      "caption": "Foto da mesa",
+      "visualDescription": "Caderno: R. = RO",
+      "takenAt": "2024-08-12T21:00:00",
+      "colorSeed": "62",
+      "revealsClueIds": [
+        "CLUE_NOTE_R"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph8",
+      "title": "Mãe no aniversário",
+      "caption": "Setembro",
+      "visualDescription": "Sofia e Marina, bolo, 09/12 na faixa",
+      "takenAt": "2023-09-12T19:00:00",
+      "colorSeed": "51",
+      "revealsClueIds": [],
+      "hotspots": []
+    },
+    {
+      "id": "ph9",
+      "title": "Câmera apagada",
+      "caption": "São Lucas",
+      "visualDescription": "Dome camera com LED off",
+      "takenAt": "2024-08-13T23:35:00",
+      "colorSeed": "14",
+      "revealsClueIds": [
+        "CLUE_LEO_CAMERA"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph10",
+      "title": "Lixeira — print",
+      "caption": "apagado",
+      "visualDescription": "Print de chat apagado",
+      "takenAt": "2024-08-13T23:00:00",
+      "deleted": true,
+      "colorSeed": "28",
+      "revealsClueIds": [
+        "CLUE_MSG_DELETED"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph11",
+      "title": "Mapa pilar B",
+      "caption": "Pin",
+      "visualDescription": "Maps com pin no São Lucas",
+      "takenAt": "2024-08-13T22:50:00",
+      "isScreenshot": true,
+      "colorSeed": "37",
+      "revealsClueIds": [
+        "CLUE_BROWSER_LOC"
+      ],
+      "hotspots": []
+    },
+    {
+      "id": "ph12",
+      "title": "Frota ValeLog",
+      "caption": "Arquivo",
+      "visualDescription": "Caminhões com logo",
+      "takenAt": "2024-08-08T15:00:00",
+      "colorSeed": "80",
+      "revealsClueIds": [
+        "CLUE_AURORA_SHEETS"
+      ],
+      "hotspots": []
+    }
+  ],
+  "calls": [
+    {
+      "id": "call1",
+      "contactId": "char_unknown",
+      "displayName": "+55 11 90000-1717",
+      "number": "+55 11 90000-1717",
+      "type": "incoming",
+      "timestamp": "2024-08-13T23:41:00",
+      "durationSeconds": 41,
+      "unknown": true,
+      "revealsClueIds": [
+        "CLUE_CALL_UNKNOWN",
+        "CLUE_UNKNOWN_1717"
+      ]
+    },
+    {
+      "id": "call2",
+      "contactId": "char_daniel",
+      "displayName": "Daniel Rocha",
+      "type": "incoming",
+      "timestamp": "2024-08-13T21:02:00",
+      "durationSeconds": 186,
+      "revealsClueIds": [
+        "CLUE_CALL_DANIEL"
+      ]
+    },
+    {
+      "id": "call3",
+      "contactId": "char_sofia",
+      "displayName": "Mãe",
+      "type": "incoming",
+      "timestamp": "2024-08-13T22:05:00",
+      "durationSeconds": 94,
+      "revealsClueIds": [
+        "CLUE_SOFIA_CALL"
+      ]
+    },
+    {
+      "id": "call4",
+      "contactId": "char_camila",
+      "displayName": "Camila Duarte",
+      "type": "missed",
+      "timestamp": "2024-08-13T23:44:00",
+      "durationSeconds": 0,
+      "revealsClueIds": [
+        "CLUE_VOICEMAIL"
+      ]
+    },
+    {
+      "id": "call5",
+      "contactId": "char_rafael",
+      "displayName": "Rafael",
+      "type": "outgoing",
+      "timestamp": "2024-08-13T20:30:00",
+      "durationSeconds": 32,
+      "revealsClueIds": []
+    },
+    {
+      "id": "call6",
+      "contactId": "char_bruno",
+      "displayName": "Bruno Vale",
+      "type": "missed",
+      "timestamp": "2024-08-13T19:10:00",
+      "durationSeconds": 0,
+      "revealsClueIds": [
+        "CLUE_BRUNO_PRESSURE"
+      ]
+    },
+    {
+      "id": "call7",
+      "contactId": "char_leo",
+      "displayName": "Leo Segurança",
+      "type": "outgoing",
+      "timestamp": "2024-08-13T23:49:00",
+      "durationSeconds": 22,
+      "revealsClueIds": [
+        "CLUE_LEO_CAMERA"
+      ]
+    },
+    {
+      "id": "call8",
+      "contactId": "char_rita",
+      "displayName": "R.",
+      "type": "incoming",
+      "timestamp": "2024-08-12T11:00:00",
+      "durationSeconds": 120,
+      "revealsClueIds": [
+        "CLUE_R_THREAD"
+      ]
+    }
+  ],
+  "emails": [
+    {
+      "id": "em1",
+      "from": "daniel.rocha@cronicanorte.news",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "Pauta Aurora",
+      "body": "Marina, segura a matéria. A diretoria não autoriza. Apague o rascunho.",
+      "timestamp": "2024-08-13T16:38:00",
+      "revealsClueIds": [
+        "CLUE_EMAIL_DANIEL"
+      ]
+    },
+    {
+      "id": "em2",
+      "from": "rita.okamoto@valelog.com.br",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "não use meu nome",
+      "body": "Sou Rita Okamoto. R. nas mensagens. 0403 abre a pasta. Apague este e-mail.",
+      "timestamp": "2024-08-12T10:55:00",
+      "revealsClueIds": [
+        "CLUE_EMAIL_RITA"
+      ]
+    },
+    {
+      "id": "em3",
+      "from": "leo.pires@saolucas.park",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "Câmera B",
+      "body": "A câmera do pilar B 'caiu' por ordem de manutenção emergencial. Não foi pane.",
+      "timestamp": "2024-08-14T07:12:00",
+      "revealsClueIds": [
+        "CLUE_LEO_CAMERA"
+      ]
+    },
+    {
+      "id": "em4",
+      "from": "bruno.vale@valelog.com.br",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "Notificação extrajudicial",
+      "body": "Qualquer publicação sobre Aurora será respondida na justiça.",
+      "timestamp": "2024-08-13T19:00:00",
+      "revealsClueIds": [
+        "CLUE_BRUNO_PRESSURE"
+      ]
+    },
+    {
+      "id": "em5",
+      "from": "marina.alves@cronicanorte.news",
+      "to": [
+        "daniel.rocha@cronicanorte.news"
+      ],
+      "subject": "(rascunho) Eu publico mesmo assim",
+      "body": "Daniel, eu sei do Pix. AV Services. 80 mil.",
+      "timestamp": "2024-08-13T21:20:00",
+      "isDraft": true,
+      "revealsClueIds": [
+        "CLUE_DANIEL_MONEY"
+      ]
+    },
+    {
+      "id": "em6",
+      "from": "noreply@avservices.example",
+      "to": [
+        "marina.alves@cronicanorte.news"
+      ],
+      "subject": "Fatura",
+      "body": "Serviços de inteligência. Cliente: ValeLogística.",
+      "timestamp": "2024-08-09T09:00:00",
+      "isSpam": true,
+      "revealsClueIds": [
+        "CLUE_REMOTE_ACCESS"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "n1",
+      "title": "Se alguma coisa acontecer comigo",
+      "body": "Se alguma coisa acontecer comigo, abre Files → Aurora. Senha = aniversário de R. (0403).\nPIN do celular: mês do pai + o que eu nunca esqueço.",
+      "updatedAt": "2024-08-13T21:50:00",
+      "revealsClueIds": [
+        "CLUE_NOTE_IF"
+      ]
+    },
+    {
+      "id": "n2",
+      "title": "R. = RO",
+      "body": "Não é Rafael. RO. Rita. Analista. Ela vazou as abas da frota fantasma.",
+      "updatedAt": "2024-08-12T22:10:00",
+      "revealsClueIds": [
+        "CLUE_NOTE_R"
+      ]
+    },
+    {
+      "id": "n3",
+      "title": "Álibis",
+      "body": "Rafael: Lume.\nDaniel: redação.\nBruno: 'reunião'.\nCamila: casa? Conferir GPS dela depois.",
+      "updatedAt": "2024-08-13T20:40:00",
+      "revealsClueIds": []
+    },
+    {
+      "id": "n4",
+      "title": "1717",
+      "body": "Número que aparece em recados da ValeLog. Pré-pago. Não atender.",
+      "updatedAt": "2024-08-13T18:22:00",
+      "revealsClueIds": [
+        "CLUE_UNKNOWN_1717"
+      ]
+    },
+    {
+      "id": "n5",
+      "title": "Lista Aurora",
+      "body": "Contrato, planilha, Pix, câmera, isca.",
+      "updatedAt": "2024-08-13T19:05:00",
+      "locked": true,
+      "revealsClueIds": [
+        "CLUE_FILE_AURORA"
+      ]
+    },
+    {
+      "id": "n6",
+      "title": "Pilar B",
+      "body": "Camila marcou 23:30. Chegar e filmar o carro se aparecer.",
+      "updatedAt": "2024-08-13T22:58:00",
+      "revealsClueIds": [
+        "CLUE_CAL_EVENT"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "id": "f1",
+      "name": "aurora_planilha.xlsx",
+      "path": "/Files/Aurora/",
+      "type": "xlsx",
+      "modifiedAt": "2024-08-12T11:20:00",
+      "passwordProtected": true,
+      "password": "0403",
+      "content": "Aba Frota Fantasma\nPlacas NEX-4A71 … NEX-4A90 sem motorista.\nAba Propina: AV Services 80.000 — D. Rocha.\nAssinatura digital: B. Vale.",
+      "revealsClueIds": [
+        "CLUE_FILE_AURORA",
+        "CLUE_AURORA_SHEETS"
+      ]
+    },
+    {
+      "id": "f2",
+      "name": "contrato_aurora.pdf",
+      "path": "/Files/Aurora/",
+      "type": "pdf",
+      "modifiedAt": "2024-08-12T11:22:00",
+      "content": "Contrato Aurora — ValeLogística × município.\nCláusula 17: veículos em operação contínua.\nNa prática: frota papel.",
+      "revealsClueIds": [
+        "CLUE_CONTRACT_AURORA"
+      ]
+    },
+    {
+      "id": "f3",
+      "name": "arquivo_00017.dat",
+      "path": "/System/hidden/",
+      "type": "dat",
+      "modifiedAt": "2024-08-13T23:47:00",
+      "hidden": true,
+      "passwordProtected": true,
+      "password": "2347",
+      "content": "SESSÃO REMOTA AV-PROXY\nlast_charge=23:47\noperator=unknown",
+      "revealsClueIds": [
+        "CLUE_FILE_DAT",
+        "CLUE_REMOTE_ACCESS"
+      ]
+    },
+    {
+      "id": "f4",
+      "name": "backup_pulse_partial.bak",
+      "path": "/Lixeira/",
+      "type": "bak",
+      "modifiedAt": "2024-08-13T23:01:00",
+      "content": "Camila marcou. Não confia. Não vá sozinha.",
+      "revealsClueIds": [
+        "CLUE_RECOVERED_FRAGMENT"
+      ]
+    },
+    {
+      "id": "f5",
+      "name": "comprovante_av.pdf",
+      "path": "/Downloads/",
+      "type": "pdf",
+      "modifiedAt": "2024-08-11T10:02:00",
+      "content": "Pix R$ 80.000 · AV Services → Daniel Rocha",
+      "revealsClueIds": [
+        "CLUE_DANIEL_MONEY"
+      ]
+    },
+    {
+      "id": "f6",
+      "name": "notas_ro.txt",
+      "path": "/Files/",
+      "type": "txt",
+      "modifiedAt": "2024-08-12T22:11:00",
+      "content": "RO = Rita Okamoto. Aniversário 04/03.",
+      "revealsClueIds": [
+        "CLUE_NOTE_R"
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc1",
+      "name": "Redação Crônica Norte",
+      "kind": "history",
+      "lat": -23.56,
+      "lng": -46.65,
+      "visitedAt": "2024-08-13T19:00:00"
+    },
+    {
+      "id": "loc2",
+      "name": "Bar Lume",
+      "kind": "history",
+      "lat": -23.57,
+      "lng": -46.64,
+      "visitedAt": "2024-08-13T22:10:00",
+      "revealsClueIds": [
+        "CLUE_LOC_RESTAURANT"
+      ]
+    },
+    {
+      "id": "loc3",
+      "name": "Restaurante Lume — pesquisa",
+      "kind": "searched",
+      "lat": -23.57,
+      "lng": -46.64,
+      "note": "mesa 4",
+      "revealsClueIds": [
+        "CLUE_LOC_RESTAURANT"
+      ]
+    },
+    {
+      "id": "loc4",
+      "name": "Estacionamento São Lucas — pilar B",
+      "kind": "history",
+      "lat": -23.59,
+      "lng": -46.64,
+      "visitedAt": "2024-08-13T23:31:00",
+      "revealsClueIds": [
+        "CLUE_PARKING"
+      ]
+    },
+    {
+      "id": "loc5",
+      "name": "Casa (Sofia)",
+      "kind": "favorite",
+      "lat": -23.54,
+      "lng": -46.68
+    },
+    {
+      "id": "loc6",
+      "name": "ValeLogística HQ",
+      "kind": "searched",
+      "lat": -23.52,
+      "lng": -46.63,
+      "note": "pauta Aurora"
+    }
+  ],
+  "browserHistory": [
+    {
+      "id": "br1",
+      "title": "Estacionamento São Lucas pilar B",
+      "url": "https://maps.example/sao-lucas",
+      "visitedAt": "2024-08-13T22:49:00",
+      "snippet": "Pilar B, subsolo 2.",
+      "revealsClueIds": [
+        "CLUE_BROWSER_LOC"
+      ]
+    },
+    {
+      "id": "br2",
+      "title": "Contrato Aurora PDF",
+      "url": "https://drive.example/aurora",
+      "visitedAt": "2024-08-13T19:38:00",
+      "revealsClueIds": [
+        "CLUE_CONTRACT_AURORA"
+      ]
+    },
+    {
+      "id": "br3",
+      "title": "AV Services inteligência",
+      "url": "https://avservices.example",
+      "visitedAt": "2024-08-13T20:01:00",
+      "revealsClueIds": [
+        "CLUE_REMOTE_ACCESS"
+      ]
+    },
+    {
+      "id": "br4",
+      "title": "Como recuperar mensagens apagadas",
+      "url": "https://support.example/whatsapp",
+      "visitedAt": "2024-08-13T23:02:00",
+      "revealsClueIds": [
+        "CLUE_MSG_DELETED"
+      ]
+    },
+    {
+      "id": "br5",
+      "title": "Rita Okamoto LinkedIn",
+      "url": "https://linkedin.example/rita-okamoto",
+      "visitedAt": "2024-08-12T21:40:00",
+      "revealsClueIds": [
+        "CLUE_NOTE_R"
+      ]
+    },
+    {
+      "id": "br6",
+      "title": "ValeLogística frota",
+      "url": "https://valelog.example/frota",
+      "visitedAt": "2024-08-08T16:00:00"
+    },
+    {
+      "id": "br7",
+      "title": "Bar Lume cardápio",
+      "url": "https://lume.example",
+      "visitedAt": "2024-08-13T21:55:00"
+    },
+    {
+      "id": "br8",
+      "title": "NexoBank comprovantes",
+      "url": "https://nexobank.example",
+      "visitedAt": "2024-08-11T10:05:00",
+      "revealsClueIds": [
+        "CLUE_DANIEL_MONEY"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "id": "tl1",
+      "timestamp": "2024-08-13T16:40:00",
+      "description": "Daniel manda segurar a pauta Aurora",
+      "source": "WhatsApp / Mail",
+      "reliability": 0.9,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tl2",
+      "timestamp": "2024-08-13T20:10:00",
+      "description": "Bruno alega reunião até meia-noite",
+      "source": "WhatsApp",
+      "reliability": 0.6,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tl3",
+      "timestamp": "2024-08-13T22:05:00",
+      "description": "Sofia liga; Rafael chama ao Lume",
+      "source": "Telefone / WhatsApp",
+      "reliability": 0.8,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tl4",
+      "timestamp": "2024-08-13T22:14:00",
+      "description": "Foto no Lume — reflexo de Camila",
+      "source": "Fotos",
+      "reliability": 0.85,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_PHOTO_REFLECTION"
+      ]
+    },
+    {
+      "id": "tl5",
+      "timestamp": "2024-08-13T22:55:00",
+      "description": "Camila marca o São Lucas às 23:30",
+      "source": "WhatsApp",
+      "reliability": 0.98,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_CAMILA_LURE"
+      ]
+    },
+    {
+      "id": "tl6",
+      "timestamp": "2024-08-13T23:18:00",
+      "description": "Última mensagem: 'Eu descobri quem está por trás disso.'",
+      "source": "WhatsApp",
+      "reliability": 0.99,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_LAST_MSG"
+      ]
+    },
+    {
+      "id": "tl7",
+      "timestamp": "2024-08-13T23:28:00",
+      "description": "GPS desligado. Último ponto: São Lucas",
+      "source": "Ajustes",
+      "reliability": 0.95,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_LOC_OFF"
+      ]
+    },
+    {
+      "id": "tl8",
+      "timestamp": "2024-08-13T23:31:00",
+      "description": "Marina no pilar B",
+      "source": "Fotos / Mapas",
+      "reliability": 0.97,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_PARKING"
+      ]
+    },
+    {
+      "id": "tl9",
+      "timestamp": "2024-08-13T23:41:00",
+      "description": "Ligação do 1717",
+      "source": "Telefone",
+      "reliability": 0.9,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_CALL_UNKNOWN"
+      ]
+    },
+    {
+      "id": "tl10",
+      "timestamp": "2024-08-13T23:47:00",
+      "description": "Última carga / sessão remota",
+      "source": "Sistema",
+      "reliability": 0.8,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_FILE_DAT"
+      ]
+    },
+    {
+      "id": "tl11",
+      "timestamp": "2024-08-14T09:10:00",
+      "description": "VANTA encontrado no São Lucas",
+      "source": "Boletim",
+      "reliability": 1.0,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tl12",
+      "timestamp": "2024-08-13T23:33:00",
+      "description": "SUV ValeLog fotografado na rampa",
+      "source": "Fotos",
+      "reliability": 0.92,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_PHOTO_PLATE"
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "end_a",
+      "code": "A",
+      "title": "A ordem veio de cima",
+      "summary": "Bruno Vale como mandante, com evidência sólida.",
+      "epilogue": "Bruno é indiciado. A frota fantasma vira CPI. Marina continua desaparecida — mas a mentira oficial cai.",
+      "requirements": {
+        "accuse": "char_bruno",
+        "minScore": 55,
+        "priority": 50
+      }
+    },
+    {
+      "id": "end_b",
+      "code": "B",
+      "title": "Acusação errada",
+      "summary": "A pessoa errada leva a culpa.",
+      "epilogue": "A denúncia se desfaz. O telefone de Marina nunca mais acende.",
+      "requirements": {
+        "minScore": 20,
+        "priority": 10
+      }
+    },
+    {
+      "id": "end_c",
+      "code": "C",
+      "title": "Metade da verdade",
+      "summary": "Só Camila.",
+      "epilogue": "Camila confessa o encontro. Bruno escapa. Aurora segue intacto.",
+      "requirements": {
+        "accuse": "char_camila",
+        "minScore": 35,
+        "priority": 30
+      }
+    },
+    {
+      "id": "end_d",
+      "code": "D",
+      "title": "A conspiração inteira",
+      "summary": "Bruno, a isca, o remoto e as contradições.",
+      "epilogue": "Quadro completo: Bruno ordena, Camila atrai, Daniel cobre, 1717, São Lucas, acesso remoto. A última mensagem vira prova.",
+      "requirements": {
+        "accuse": "char_bruno",
+        "minScore": 70,
+        "requiredClues": [
+          "CLUE_SEQUENCE",
+          "CLUE_CAMILA_LURE",
+          "CLUE_REMOTE_ACCESS"
+        ],
+        "remoteAccess": true,
+        "priority": 100
+      }
+    },
+    {
+      "id": "end_e",
+      "code": "E",
+      "title": "Evidências insuficientes",
+      "summary": "Pouca prova.",
+      "epilogue": "O caso esfria. Resta um VANTA com 4% de bateria e uma frase no ar.",
+      "requirements": {
+        "maxScore": 34,
+        "priority": 5
+      }
+    }
+  ],
+  "unlockRules": [
+    {
+      "id": "rule_r_identity",
+      "requiredClueIds": [
+        "CLUE_NOTE_R",
+        "CLUE_EMAIL_RITA"
+      ],
+      "minRequired": 2,
+      "unlockClueIds": [
+        "CLUE_R_IDENTITY"
+      ],
+      "notificationText": "R. tem nome: Rita Okamoto."
+    },
+    {
+      "id": "rule_lure",
+      "requiredClueIds": [
+        "CLUE_VOICEMAIL",
+        "CLUE_CAMILA_LURE"
+      ],
+      "minRequired": 2,
+      "unlockClueIds": [
+        "CLUE_SEQUENCE"
+      ],
+      "unlockTimelineIds": [
+        "tl5"
+      ]
+    },
+    {
+      "id": "rule_dat",
+      "requiredClueIds": [
+        "CLUE_FILE_DAT"
+      ],
+      "unlockContentIds": [
+        "f3"
+      ],
+      "notificationText": "Arquivo de sistema recuperado."
+    }
+  ],
+  "liveEvents": [
+    {
+      "id": "le1",
+      "trigger": "time",
+      "delaySeconds": 0,
+      "type": "message",
+      "condition": {
+        "deviceUnlocked": true,
+        "minElapsedSeconds": 90,
+        "missingAnyClues": [
+          "CLUE_LAST_MSG"
+        ],
+        "endingChosen": false
+      },
+      "payload": {
+        "from": "Sofia Alves",
+        "body": "Olha o WhatsApp dela. A última mensagem ainda está lá.",
+        "revealsClueIds": []
+      }
+    },
+    {
+      "id": "le2",
+      "trigger": "time",
+      "delaySeconds": 0,
+      "type": "message",
+      "condition": {
+        "deviceUnlocked": true,
+        "minElapsedSeconds": 240,
+        "missingAnyClues": [
+          "CLUE_PARKING"
+        ],
+        "endingChosen": false
+      },
+      "payload": {
+        "from": "Leonardo Pires",
+        "body": "Se o aparelho estava no São Lucas, o GPS mente? Abre Mapas e Ajustes."
+      }
+    },
+    {
+      "id": "le3",
+      "trigger": "open_app",
+      "delaySeconds": 2,
+      "type": "island",
+      "condition": {
+        "appId": "settings",
+        "deviceUnlocked": true
+      },
+      "payload": {
+        "state": "unknownActivity",
+        "label": "sessão remota?"
+      }
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "CONTRA_RAFAEL_LUME",
+      "statement": "Rafael diz que estava só no Lume, sem rastrear Marina",
+      "characterId": "char_rafael",
+      "evidenceClueIds": [
+        "CLUE_RAFAEL_WHERE",
+        "CLUE_LAST_MSG"
+      ],
+      "resolution": "Ele cobrava localização o tempo todo. É pista falsa forte, não o mandante.",
+      "revealsClueIds": []
+    },
+    {
+      "id": "CONTRA_BRUNO_MEETING",
+      "statement": "Bruno estava em reunião até meia-noite",
+      "characterId": "char_bruno",
+      "evidenceClueIds": [
+        "CLUE_BRUNO_PRESSURE",
+        "CLUE_PHOTO_PLATE"
+      ],
+      "resolution": "A frota ValeLog está no São Lucas. O álibi não segura.",
+      "revealsClueIds": [
+        "CLUE_BRUNO_CAR"
+      ]
+    },
+    {
+      "id": "CONTRA_CAMILA_HOME",
+      "statement": "Camila só avisou a colega e foi para casa",
+      "characterId": "char_camila",
+      "evidenceClueIds": [
+        "CLUE_CAMILA_LURE",
+        "CLUE_VOICEMAIL"
+      ],
+      "resolution": "Ela marcou o pilar B e depois pediu desculpas no correio.",
+      "revealsClueIds": [
+        "CLUE_SEQUENCE"
+      ]
+    },
+    {
+      "id": "CONTRA_DANIEL_ETHICS",
+      "statement": "Daniel só seguia a linha editorial",
+      "characterId": "char_daniel",
+      "evidenceClueIds": [
+        "CLUE_EMAIL_DANIEL",
+        "CLUE_DANIEL_MONEY"
+      ],
+      "resolution": "O Pix de 80 mil da AV Services compra o silêncio.",
+      "revealsClueIds": []
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "pz_aurora",
+      "answer": "0403",
+      "alternateAnswers": [
+        "04/03",
+        "4/3",
+        "0403 "
+      ],
+      "unlockOnSolve": [
+        "f1",
+        "CLUE_FILE_AURORA"
+      ],
+      "relatedClueIds": [
+        "CLUE_FILE_AURORA",
+        "CLUE_NOTE_R"
+      ]
+    },
+    {
+      "id": "pz_dat",
+      "answer": "2347",
+      "alternateAnswers": [
+        "23:47"
+      ],
+      "unlockOnSolve": [
+        "f3",
+        "CLUE_FILE_DAT"
+      ],
+      "relatedClueIds": [
+        "CLUE_FILE_DAT"
+      ]
+    }
+  ],
+  "calendarEvents": [
+    {
+      "id": "cal1",
+      "title": "Pauta (São Lucas)",
+      "start": "2024-08-13T23:30:00",
+      "end": "2024-08-13T23:50:00",
+      "location": "Estacionamento São Lucas",
+      "notes": "Camila marcou",
+      "revealsClueIds": [
+        "CLUE_CAL_EVENT"
+      ]
+    },
+    {
+      "id": "cal2",
+      "title": "Fechamento Aurora",
+      "start": "2024-08-13T18:00:00",
+      "location": "Redação",
+      "revealsClueIds": [
+        "CLUE_EMAIL_DANIEL"
+      ]
+    },
+    {
+      "id": "cal3",
+      "title": "Aniversário pai (lembrete)",
+      "start": "2023-09-12T00:00:00",
+      "notes": "09/12 — PIN",
+      "revealsClueIds": []
+    }
+  ],
+  "initialNotifications": [
+    {
+      "id": "nlock1",
+      "appId": "pulse",
+      "title": "WhatsApp",
+      "body": "Rafael: Marina?? Responde.",
+      "timestamp": "2024-08-13T23:46:00",
+      "revealsClueIds": [
+        "CLUE_LAST_MSG"
+      ]
+    },
+    {
+      "id": "nlock2",
+      "appId": "calls",
+      "title": "Telefone",
+      "body": "1 chamada perdida de Camila",
+      "timestamp": "2024-08-13T23:44:00"
+    },
+    {
+      "id": "nlock3",
+      "appId": "atlas",
+      "title": "Mapas",
+      "body": "Última localização: São Lucas",
+      "timestamp": "2024-08-13T23:28:00",
+      "revealsClueIds": [
+        "CLUE_PARKING"
+      ]
+    }
+  ]
+}
