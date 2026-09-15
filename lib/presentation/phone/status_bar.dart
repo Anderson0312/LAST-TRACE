@@ -1,1 +1,2 @@
-export 'dynamic_island.dart' show OsisStatusBar, DynamicIsland;
+export 'dynamic_island.dart'
+    show OsisStatusBar, DynamicIsland, IphoneStatusOverlay;

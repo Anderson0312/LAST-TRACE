@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../../core/theme/osis_theme.dart';
 import '../../domain/engines/game_engine.dart';
 import '../../main.dart';
+import '../apps/app_catalog.dart';
+import 'liquid_glass.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -49,7 +51,7 @@ class _LockScreenState extends State<LockScreen> {
     final engine = context.watch<GameEngine>();
     final now = DateTime.now();
     final time = DateFormat('HH:mm').format(now);
-    final date = DateFormat('EEEE, d \'de\' MMMM', 'pt_BR').format(now).toUpperCase();
+    final date = DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now);
 
     return GestureDetector(
       onVerticalDragUpdate: (d) {
@@ -62,35 +64,36 @@ class _LockScreenState extends State<LockScreen> {
           fit: StackFit.expand,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 100, 24, 40),
+              padding: const EdgeInsets.fromLTRB(22, 72, 22, 36),
               child: Column(
                 children: [
+                  Text(
+                    date,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                   Text(
                     time,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 76,
+                      fontSize: 84,
                       fontWeight: FontWeight.w200,
-                      height: 1,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.6,
+                      height: 1.02,
+                      letterSpacing: -2.5,
                     ),
                   ),
                   const SizedBox(height: 28),
-                  ...engine.notifications.take(3).map((n) => _NotifCard(
-                        app: n.appId,
-                        title: n.title,
-                        body: n.body,
-                      )),
+                  ...engine.notifications.take(3).map(
+                        (n) => _NotifCard(
+                          app: n.appId,
+                          title: n.title,
+                          body: n.body,
+                        ),
+                      ),
                   const Spacer(),
                   if (!_showPin)
                     Text(
@@ -101,29 +104,34 @@ class _LockScreenState extends State<LockScreen> {
                       ),
                     ),
                   if (!_showPin) ...[
-                    const SizedBox(height: 24),
-                    Row(
+                    const SizedBox(height: 22),
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _RoundIcon(icon: Icons.flashlight_on_outlined),
                         _RoundIcon(icon: Icons.camera_alt_outlined),
                       ],
                     ),
+                    const SizedBox(height: 10),
                   ],
                 ],
               ),
             ),
             if (_showPin)
               BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
                 child: Container(
-                  color: Colors.black54,
+                  color: Colors.black.withValues(alpha: 0.42),
                   child: Column(
                     children: [
-                      const SizedBox(height: 120),
+                      const SizedBox(height: 110),
                       const Text(
                         'Digite o código',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       if (engine.c.lockHint.isNotEmpty) ...[
                         const SizedBox(height: 8),
@@ -139,34 +147,42 @@ class _LockScreenState extends State<LockScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 22),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(4, (i) {
                           final filled = i < _pin.length;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            width: 12,
-                            height: 12,
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            width: 14,
+                            height: 14,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: filled ? Colors.white : Colors.transparent,
-                              border: Border.all(color: Colors.white70),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                width: 1.4,
+                              ),
                             ),
                           );
                         }),
                       ),
                       if (_error != null) ...[
-                        const SizedBox(height: 10),
-                        Text(_error!,
-                            style: const TextStyle(color: OsisTheme.danger)),
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          style: const TextStyle(color: OsisTheme.danger),
+                        ),
                       ],
                       const Spacer(),
                       _PinPad(
                         onDigit: _digit,
                         onDelete: () {
                           if (_pin.isEmpty) return;
-                          setState(() => _pin = _pin.substring(0, _pin.length - 1));
+                          setState(
+                            () => _pin = _pin.substring(0, _pin.length - 1),
+                          );
                         },
                       ),
                       TextButton(
@@ -174,10 +190,12 @@ class _LockScreenState extends State<LockScreen> {
                           _showPin = false;
                           _pin = '';
                         }),
-                        child: const Text('Cancelar',
-                            style: TextStyle(color: Colors.white70)),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                     ],
                   ),
                 ),
@@ -193,30 +211,53 @@ class _NotifCard extends StatelessWidget {
   final String app;
   final String title;
   final String body;
-  const _NotifCard({required this.app, required this.title, required this.body});
+  const _NotifCard({
+    required this.app,
+    required this.title,
+    required this.body,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-          const SizedBox(height: 4),
-          Text(body,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: LiquidGlass(
+        radius: 20,
+        blur: 24,
+        opacity: 0.20,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppCatalog.displayName(app).toUpperCase(),
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
-        ],
+                color: Colors.white.withValues(alpha: 0.55),
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                letterSpacing: 0.4,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              body,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.82),
+                fontSize: 13,
+                height: 1.25,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -228,14 +269,15 @@ class _RoundIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        shape: BoxShape.circle,
+    return LiquidGlass(
+      radius: 26,
+      blur: 18,
+      opacity: 0.16,
+      child: SizedBox(
+        width: 52,
+        height: 52,
+        child: Icon(icon, color: Colors.white, size: 22),
       ),
-      child: Icon(icon, color: Colors.white, size: 22),
     );
   }
 }
@@ -260,26 +302,26 @@ class _PinPad extends StatelessWidget {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: row.map((k) {
-              if (k.isEmpty) return const SizedBox(width: 72, height: 72);
+              if (k.isEmpty) return const SizedBox(width: 76, height: 76);
               return InkWell(
                 customBorder: const CircleBorder(),
                 onTap: () => k == '⌫' ? onDelete() : onDigit(k),
                 child: Container(
-                  width: 72,
-                  height: 72,
+                  width: 76,
+                  height: 76,
                   alignment: Alignment.center,
-                  margin: const EdgeInsets.all(6),
+                  margin: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: k == '⌫'
                         ? Colors.transparent
-                        : Colors.white.withValues(alpha: 0.12),
+                        : Colors.white.withValues(alpha: 0.14),
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     k,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
+                      fontSize: 32,
                       fontWeight: FontWeight.w300,
                     ),
                   ),
