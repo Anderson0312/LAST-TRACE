@@ -63,6 +63,38 @@ class _MailboxAppState extends State<MailboxApp> {
             onTap: () {
               engine.revealFromContent(e.revealsClueIds);
               autosave(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: const Color(0xFF14161C),
+                builder: (_) => DraggableScrollableSheet(
+                  expand: false,
+                  initialChildSize: 0.7,
+                  builder: (_, c) => ListView(
+                    controller: c,
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      Text(e.subject,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Text('De: ${e.from}',
+                          style: const TextStyle(color: Colors.white54)),
+                      Text('Para: ${e.to.join(', ')}',
+                          style: const TextStyle(color: Colors.white54)),
+                      if (e.bcc.isNotEmpty)
+                        Text('Cco: ${e.bcc.join(', ')}',
+                            style: const TextStyle(color: Colors.white54)),
+                      const SizedBox(height: 16),
+                      Text(e.body, style: const TextStyle(height: 1.45)),
+                      if (e.attachments.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('Anexos: ${e.attachments.join(', ')}'),
+                      ],
+                    ],
+                  ),
+                ),
+              );
             },
           );
         },

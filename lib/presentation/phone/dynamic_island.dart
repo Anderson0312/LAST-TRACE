@@ -93,9 +93,57 @@ class OsisStatusBar extends StatelessWidget {
           const SizedBox(width: 4),
           const Icon(Icons.wifi, size: 14, color: Colors.white),
           const SizedBox(width: 6),
-          Text('$battery', style: const TextStyle(color: Colors.white, fontSize: 12)),
+          _Battery(percent: battery),
         ],
       ),
+    );
+  }
+}
+
+class _Battery extends StatelessWidget {
+  final int percent;
+  const _Battery({required this.percent});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = percent <= 15
+        ? OsisTheme.danger
+        : percent <= 35
+            ? const Color(0xFFFFB020)
+            : Colors.white;
+    return Row(
+      children: [
+        Text(
+          '$percent',
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 3),
+        Container(
+          width: 24,
+          height: 11,
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withValues(alpha: 0.7)),
+            borderRadius: BorderRadius.circular(3),
+          ),
+          padding: const EdgeInsets.all(1.5),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: (percent / 100).clamp(0.05, 1),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
