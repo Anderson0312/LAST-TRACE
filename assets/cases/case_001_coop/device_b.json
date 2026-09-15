@@ -644,4 +644,179 @@
       "id": "tlb2",
       "timestamp": "2024-08-13T22:55:00",
       "description": "Camila chama Marina ao São Lucas",
-      "source": "Whats
+      "source": "WhatsApp",
+      "reliability": 0.98,
+      "initiallyVisible": true,
+      "unlockWithClueIds": []
+    },
+    {
+      "id": "tlb3",
+      "timestamp": "2024-08-13T23:24:00",
+      "description": "GPS: Camila no estacionamento",
+      "source": "Mapas",
+      "reliability": 0.99,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_B_LOC_PARKING"
+      ]
+    },
+    {
+      "id": "tlb4",
+      "timestamp": "2024-08-13T23:32:00",
+      "description": "Marina: 'Estou no pilar B'",
+      "source": "WhatsApp",
+      "reliability": 0.97,
+      "initiallyVisible": false,
+      "unlockWithClueIds": [
+        "CLUE_B_LURE_MSG"
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "end_a",
+      "code": "A",
+      "title": "A ordem veio de cima",
+      "summary": "Bruno Vale como mandante.",
+      "epilogue": "Com as duas perspectivas, Bruno é indiciado. Camila colabora. Marina ainda não foi encontrada — mas a mentira oficial cai.",
+      "requirements": {
+        "accuse": "char_bruno",
+        "minScore": 55,
+        "priority": 50
+      }
+    },
+    {
+      "id": "end_b",
+      "code": "B",
+      "title": "Acusação errada",
+      "summary": "Pessoa errada.",
+      "epilogue": "A denúncia se desfaz. O telefone de Marina nunca mais acende.",
+      "requirements": {
+        "minScore": 20,
+        "priority": 10
+      }
+    },
+    {
+      "id": "end_c",
+      "code": "C",
+      "title": "Metade da verdade",
+      "summary": "Só Camila.",
+      "epilogue": "Camila confessa o encontro. Bruno escapa. Aurora segue intacto.",
+      "requirements": {
+        "accuse": "char_camila",
+        "minScore": 35,
+        "priority": 30
+      }
+    },
+    {
+      "id": "end_d",
+      "code": "D",
+      "title": "A conspiração inteira",
+      "summary": "Quadro completo cooperativo.",
+      "epilogue": "Dois celulares, uma verdade: Bruno, Daniel, a isca, o São Lucas. Operação conjunta. A última mensagem vira prova.",
+      "requirements": {
+        "accuse": "char_bruno",
+        "minScore": 70,
+        "requiredClues": [
+          "CLUE_SEQUENCE",
+          "CLUE_CAMILA_LURE"
+        ],
+        "priority": 100
+      }
+    },
+    {
+      "id": "end_e",
+      "code": "E",
+      "title": "Evidências insuficientes",
+      "summary": "Pouca prova.",
+      "epilogue": "Sem cruzar os aparelhos, o caso esfria.",
+      "requirements": {
+        "maxScore": 34,
+        "priority": 5
+      }
+    }
+  ],
+  "unlockRules": [],
+  "liveEvents": [
+    {
+      "id": "leb1",
+      "trigger": "time",
+      "condition": {
+        "deviceUnlocked": true,
+        "minElapsedSeconds": 60,
+        "missingAnyClues": [
+          "CLUE_B_BRUNO_ORDER"
+        ],
+        "endingChosen": false
+      },
+      "type": "message",
+      "payload": {
+        "from": "Sofia Alves",
+        "body": "Do outro lado: o celular da colega pode explicar o estacionamento. Olhe WhatsApp — BV e Marina."
+      },
+      "delaySeconds": 0
+    },
+    {
+      "id": "leb2",
+      "trigger": "time",
+      "condition": {
+        "deviceUnlocked": true,
+        "minElapsedSeconds": 180,
+        "missingAnyClues": [
+          "CLUE_B_LOC_PARKING"
+        ],
+        "endingChosen": false
+      },
+      "type": "message",
+      "payload": {
+        "from": "Leonardo Pires",
+        "body": "Se ela esteve no São Lucas, o GPS mente? Abre Mapas e Fotos."
+      },
+      "delaySeconds": 0
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "CONTRA_B_CAMILA_LOCAL",
+      "statement": "Camila diz que foi direto pra casa",
+      "characterId": "char_camila",
+      "evidenceClueIds": [
+        "CLUE_B_LOC_PARKING",
+        "CLUE_B_LURE_MSG"
+      ],
+      "resolution": "GPS e mensagens a colocam no São Lucas.",
+      "revealsClueIds": [
+        "CLUE_CAMILA_LURE"
+      ]
+    }
+  ],
+  "puzzles": [],
+  "calendarEvents": [
+    {
+      "id": "calb1",
+      "title": "Encontro pauta (São Lucas)",
+      "start": "2024-08-13T23:30:00",
+      "end": "2024-08-13T23:50:00",
+      "location": "Estacionamento São Lucas",
+      "revealsClueIds": [
+        "CLUE_B_LURE_MSG"
+      ]
+    }
+  ],
+  "initialNotifications": [
+    {
+      "id": "nb_lock1",
+      "appId": "pulse",
+      "title": "WhatsApp",
+      "body": "BV: Apague este chat amanhã.",
+      "timestamp": "2024-08-13T23:55:00"
+    },
+    {
+      "id": "nb_lock2",
+      "appId": "atlas",
+      "title": "Mapas",
+      "body": "Última localização: São Lucas",
+      "timestamp": "2024-08-13T23:51:00"
+    }
+  ]
+}
