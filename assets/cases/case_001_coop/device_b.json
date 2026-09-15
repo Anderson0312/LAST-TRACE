@@ -1,0 +1,415 @@
+{
+  "id": "case_001_device_b",
+  "title": "A Última Mensagem — Lado B",
+  "subtitle": "Camila Duarte · 29 · Editora assistente",
+  "synopsis": "O celular de Camila Duarte. Colega de Marina. No dia 13/08 ela marcou um encontro no estacionamento — e desde então quase não dorme.",
+  "victimId": "char_marina",
+  "deviceFoundAt": "2024-08-14T09:10:00",
+  "lockPin": "2308",
+  "lockHint": "Dia + mês do encontro que ela não quer lembrar",
+  "osState": {
+    "battery": 54,
+    "wifi": true,
+    "bluetooth": false,
+    "carrier": "Nexa",
+    "deviceName": "VANTA S",
+    "osName": "OSIS 14.1",
+    "wallpaper": "blush_concrete",
+    "targetPlaySeconds": 1800
+  },
+  "settingsHints": {
+    "batteryDrop": "Uso intenso entre 22:40 e 00:10",
+    "storageMystery": "Áudio oculto em Gravador"
+  },
+  "characters": [
+    {
+      "id": "char_marina",
+      "name": "Marina Alves",
+      "age": 27,
+      "profession": "Jornalista",
+      "relationToVictim": "Colega / vítima",
+      "role": "victim",
+      "initialSuspicion": 0,
+      "personality": "Obstinada",
+      "secrets": []
+    },
+    {
+      "id": "char_camila",
+      "name": "Camila Duarte",
+      "age": 29,
+      "profession": "Editora assistente",
+      "relationToVictim": "Dona deste aparelho",
+      "role": "suspect",
+      "initialSuspicion": 40,
+      "personality": "Ansiosa, sob pressão financeira",
+      "secrets": []
+    },
+    {
+      "id": "char_bruno",
+      "name": "Bruno Vale",
+      "age": 44,
+      "profession": "Empresário ValeLogística",
+      "relationToVictim": "Quem pressiona Camila",
+      "role": "suspect",
+      "initialSuspicion": 55,
+      "personality": "Controlador",
+      "secrets": []
+    },
+    {
+      "id": "char_daniel",
+      "name": "Daniel Rocha",
+      "age": 38,
+      "profession": "Editor-chefe",
+      "relationToVictim": "Chefe — intermediário",
+      "role": "suspect",
+      "initialSuspicion": 45,
+      "personality": "Cínico",
+      "secrets": []
+    },
+    {
+      "id": "char_rita",
+      "name": "Rita Okamoto",
+      "age": 34,
+      "profession": "Analista ValeLog",
+      "relationToVictim": "Fonte que Camila conhece de vista",
+      "role": "witness",
+      "initialSuspicion": 10,
+      "personality": "Discreta",
+      "secrets": []
+    },
+    {
+      "id": "char_rafael",
+      "name": "Rafael Mendes",
+      "age": 30,
+      "profession": "Ex de Marina",
+      "relationToVictim": "Contato ocasional",
+      "role": "suspect",
+      "initialSuspicion": 20,
+      "personality": "Ciumento",
+      "secrets": []
+    }
+  ],
+  "contacts": [
+    {
+      "id": "char_marina",
+      "name": "Marina",
+      "phone": "+55 11 98812-4401"
+    },
+    {
+      "id": "char_bruno",
+      "name": "BV",
+      "phone": "+55 11 90000-1717"
+    },
+    {
+      "id": "char_daniel",
+      "name": "Daniel Rocha",
+      "phone": "+55 11 97777-2211"
+    },
+    {
+      "id": "char_rita",
+      "name": "Rita O.",
+      "phone": "+55 11 95555-0403"
+    },
+    {
+      "id": "char_rafael",
+      "name": "Rafael M.",
+      "phone": "+55 11 96666-8181"
+    }
+  ],
+  "clues": [
+    {
+      "id": "CLUE_LOCK_OPEN",
+      "name": "Dispositivo de Camila desbloqueado",
+      "type": "system",
+      "description": "Acesso ao VANTA S",
+      "content": "Aparelho de Camila Duarte liberado.",
+      "origin": "OSIS",
+      "importance": "low",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_LOC_PARKING",
+      "name": "Camila no São Lucas às 23:24",
+      "type": "location",
+      "description": "GPS",
+      "content": "23:24 — Estacionamento São Lucas, pilar B. Permaneceu até 23:51.",
+      "origin": "Mapas",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_BRUNO_ORDER",
+      "name": "Bruno manda Camila ao pilar B",
+      "type": "message",
+      "description": "Ordem direta",
+      "content": "BV: '23:20. Pilar B. Ela precisa aparecer. Sem fotos.'",
+      "origin": "WhatsApp · BV",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_PHOTO_CAR",
+      "name": "Foto nítida da placa ValeLog",
+      "type": "photo",
+      "description": "Camila fotografou sem querer",
+      "content": "SUV preto, placa parcial NEX-4A71, adesivo ValeLogística no para-choque.",
+      "origin": "Fotos",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_RITA_BDAY",
+      "name": "Anotação: aniversário Rita 0403",
+      "type": "note",
+      "description": "Lembrete",
+      "content": "Rita O. — aniversário 04/03. Marina pediu para eu não esquecer (senha?).",
+      "origin": "Notas",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_AUDIO_DANIEL",
+      "name": "Áudio: Daniel pressiona Camila",
+      "type": "audio",
+      "description": "Gravação oculta",
+      "content": "Daniel: 'Camila, faz o que o Bruno mandar. A matéria não sobe. Eu cuido do seu contrato.'",
+      "origin": "Gravador",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_GUILT_NOTE",
+      "name": "Nota de culpa",
+      "type": "note",
+      "description": "Rascunho apagado parcialmente",
+      "content": "Eu só marquei o lugar. Eu não sabia que… Eu deveria ter avisado a Marina. Dívida 38 mil. BV sabe.",
+      "origin": "Notas",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_LURE_MSG",
+      "name": "Camila chama Marina ao estacionamento",
+      "type": "message",
+      "description": "Isco",
+      "content": "Camila→Marina: 'Consegue passar no São Lucas? 23:30. É sobre a pauta. Só nós.'",
+      "origin": "WhatsApp · Marina",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_B_PREPAID",
+      "name": "Chamada do chip 1717",
+      "type": "call",
+      "description": "Pré-pago",
+      "content": "23:18 — chamada recebida de +55 11 90000-1717 (22s). Em seguida mensagem de BV.",
+      "origin": "Chamadas",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CROSS_LURE_TIME",
+      "name": "Encontro armado (cross)",
+      "type": "contradiction",
+      "description": "Cooperativo",
+      "content": "23:24 Camila no local + 23:30 combinado com Marina = isca.",
+      "origin": "Evidências compartilhadas",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CROSS_BRUNO_LIE",
+      "name": "Bruno mentiu sobre a reunião (cross)",
+      "type": "contradiction",
+      "description": "Cooperativo",
+      "content": "Álibi de reunião vs ordem ao pilar B.",
+      "origin": "Evidências compartilhadas",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CROSS_AURORA_KEY",
+      "name": "Chave Aurora confirmada (cross)",
+      "type": "contradiction",
+      "description": "Cooperativo",
+      "content": "0403 destrava a pasta Aurora no outro aparelho.",
+      "origin": "Evidências compartilhadas",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_BRUNO_CAR",
+      "name": "Carro de Bruno no São Lucas",
+      "type": "contradiction",
+      "description": "Placa confirmada",
+      "content": "Frota ValeLog NEX-4A71 no estacionamento na noite do sumiço.",
+      "origin": "Cross-clue",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_CAMILA_LURE",
+      "name": "Camila foi coagida a atrair Marina",
+      "type": "contradiction",
+      "description": "Motivo",
+      "content": "Dívida + ordem de Bruno + mensagem isca.",
+      "origin": "Cross-clue",
+      "importance": "critical",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_DANIEL_MONEY",
+      "name": "Daniel intermediava pagamento",
+      "type": "contradiction",
+      "description": "Cobertura",
+      "content": "Áudio + e-mails mostram Daniel como ponte financeira.",
+      "origin": "Cross-clue",
+      "importance": "high",
+      "initialState": "hidden"
+    },
+    {
+      "id": "CLUE_SEQUENCE",
+      "name": "Sequência completa do crime",
+      "type": "contradiction",
+      "description": "Quadro final",
+      "content": "Bruno ordena; Camila atrai; 1717; São Lucas; loc off; remoto.",
+      "origin": "Cross-clue",
+      "importance": "critical",
+      "initialState": "hidden"
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conv_b_marina",
+      "displayName": "Marina",
+      "unread": true,
+      "revealsClueIds": [
+        "CLUE_B_LURE_MSG"
+      ],
+      "messages": [
+        {
+          "id": "bm1",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Consegue passar no São Lucas? 23:30. É sobre a pauta. Só nós.",
+          "timestamp": "2024-08-13T22:55:00",
+          "revealsClueIds": [
+            "CLUE_B_LURE_MSG"
+          ]
+        },
+        {
+          "id": "bm2",
+          "senderId": "char_marina",
+          "kind": "text",
+          "body": "Estranho marcar aí. Mas ok. Estou saindo do Lume.",
+          "timestamp": "2024-08-13T22:57:00"
+        },
+        {
+          "id": "bm3",
+          "senderId": "char_marina",
+          "kind": "text",
+          "body": "Camila? Estou no pilar B. Cadê você?",
+          "timestamp": "2024-08-13T23:32:00"
+        },
+        {
+          "id": "bm4",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Desculpa. Não posso falar agora.",
+          "timestamp": "2024-08-13T23:40:00"
+        },
+        {
+          "id": "bm5",
+          "senderId": "char_marina",
+          "kind": "text",
+          "body": "Tem alguém aqui. Camila??",
+          "timestamp": "2024-08-13T23:44:00"
+        }
+      ],
+      "contactId": "char_marina"
+    },
+    {
+      "id": "conv_b_bruno",
+      "displayName": "BV",
+      "unread": true,
+      "revealsClueIds": [
+        "CLUE_B_BRUNO_ORDER"
+      ],
+      "messages": [
+        {
+          "id": "bb1",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "A dívida não some sozinha, Camila.",
+          "timestamp": "2024-08-13T18:10:00"
+        },
+        {
+          "id": "bb2",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "23:20. Pilar B. Ela precisa aparecer. Sem fotos.",
+          "timestamp": "2024-08-13T21:05:00",
+          "revealsClueIds": [
+            "CLUE_B_BRUNO_ORDER"
+          ]
+        },
+        {
+          "id": "bb3",
+          "senderId": "self",
+          "kind": "text",
+          "body": "E depois? Vocês só vão conversar?",
+          "timestamp": "2024-08-13T21:07:00"
+        },
+        {
+          "id": "bb4",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "Você só marca. O resto não é problema seu.",
+          "timestamp": "2024-08-13T21:08:00"
+        },
+        {
+          "id": "bb5",
+          "senderId": "char_bruno",
+          "kind": "text",
+          "body": "Apague este chat amanhã.",
+          "timestamp": "2024-08-13T23:55:00"
+        }
+      ],
+      "contactId": "char_bruno"
+    },
+    {
+      "id": "conv_b_daniel",
+      "displayName": "Daniel Rocha",
+      "unread": false,
+      "messages": [
+        {
+          "id": "bd1",
+          "senderId": "char_daniel",
+          "kind": "text",
+          "body": "Segura a Marina. A pauta Aurora não sobe.",
+          "timestamp": "2024-08-13T16:40:00"
+        },
+        {
+          "id": "bd2",
+          "senderId": "self",
+          "kind": "text",
+          "body": "Ela não para, Daniel.",
+          "timestamp": "2024-08-13T16:42:00"
+        },
+        {
+          "id": "bd3",
+          "senderId": "char_daniel",
+          "kind": "text",
+          "body": "Então faz ela parar. Bruno não brinca.",
+          "timestamp": "2024-08-13T16:43:00"
+        }
+      ],
+      "contactId": "char_daniel"
+    }
+  ],
+  "photos": [
+    {
+      "id": "phb1",
+      "title": "Pilar B",
+      "caption": "Cheguei cedo",
+      "visualDe
