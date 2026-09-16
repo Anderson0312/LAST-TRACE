@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/osis_theme.dart';
 import '../../domain/engines/game_engine.dart';
+import '../apps/apple_sf.dart';
 
 /// Dynamic Island + status bar na mesma linha, como no iPhone 17 / iOS 26.
 class IphoneStatusOverlay extends StatelessWidget {
@@ -167,9 +168,9 @@ class _SignalCluster extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.signal_cellular_alt, size: 15, color: Colors.white),
+        const Icon(AppleSymbol.cellular, size: 16, color: Colors.white),
         const SizedBox(width: 5),
-        const Icon(Icons.wifi, size: 16, color: Colors.white),
+        const Icon(AppleSymbol.wifi, size: 16, color: Colors.white),
         const SizedBox(width: 6),
         _Battery(percent: battery),
       ],

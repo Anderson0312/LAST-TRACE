@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/osis_theme.dart';
 import '../../domain/engines/game_engine.dart';
 import '../apps/app_catalog.dart';
+import '../apps/apple_sf.dart';
 import '../apps/ios_icons.dart';
 import 'liquid_glass.dart';
 
@@ -42,7 +43,7 @@ class ControlCenter extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _MiniTile(
-                                  icon: Icons.wifi,
+                                  icon: AppleSymbol.wifi,
                                   label: 'Wi‑Fi',
                                   active: true,
                                 ),
@@ -50,7 +51,7 @@ class ControlCenter extends StatelessWidget {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: _MiniTile(
-                                  icon: Icons.bluetooth,
+                                  icon: AppleSymbol.bluetooth,
                                   label: 'Bluetooth',
                                   active: true,
                                 ),
@@ -62,7 +63,7 @@ class ControlCenter extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _MiniTile(
-                                  icon: Icons.airplanemode_active,
+                                  icon: AppleSymbol.airplane,
                                   label: 'Avião',
                                   active: false,
                                 ),
@@ -70,7 +71,7 @@ class ControlCenter extends StatelessWidget {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: _MiniTile(
-                                  icon: Icons.share,
+                                  icon: AppleSymbol.airdrop,
                                   label: 'AirDrop',
                                   active: false,
                                 ),
@@ -92,7 +93,7 @@ class ControlCenter extends StatelessWidget {
                           child: Column(
                             children: [
                               Icon(
-                                Icons.wb_sunny_outlined,
+                                AppleSymbol.brightness,
                                 color: Colors.white.withValues(alpha: 0.9),
                               ),
                               const SizedBox(height: 8),
@@ -117,7 +118,7 @@ class ControlCenter extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _Tile(
-                      icon: Icons.fiber_manual_record,
+                      icon: AppleSymbol.record,
                       label: 'Gravação $mm:$ss',
                       active: true,
                       danger: true,
@@ -129,7 +130,7 @@ class ControlCenter extends StatelessWidget {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: _Tile(
-                      icon: Icons.flashlight_on_outlined,
+                      icon: AppleSymbol.flashlight,
                       label: 'Lanterna',
                       active: false,
                     ),

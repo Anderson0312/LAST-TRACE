@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/assets/game_images.dart';
 import '../../domain/engines/game_engine.dart';
 import '../apps/app_catalog.dart';
+import '../apps/apple_sf.dart';
 import '../apps/ios_icons.dart';
 import 'liquid_glass.dart';
 
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.search,
+                    AppleSymbol.search,
                     size: 16,
                     color: Colors.white.withValues(alpha: 0.85),
                   ),
@@ -456,7 +457,7 @@ class _IosWeatherWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
           children: [
-            const Icon(Icons.nights_stay_rounded, color: Colors.white, size: 26),
+            const Icon(AppleSymbol.weather, color: Colors.white, size: 26),
             const SizedBox(width: 10),
             const Expanded(
               child: Column(
@@ -515,7 +516,7 @@ class _IosBatteryWidget extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              Icons.battery_std_rounded,
+              AppleSymbol.battery,
               color: warning ? const Color(0xFFFF8A80) : Colors.white,
             ),
             const SizedBox(width: 8),

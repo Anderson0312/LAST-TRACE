@@ -7,6 +7,7 @@ import '../../core/theme/osis_theme.dart';
 import '../../domain/engines/game_engine.dart';
 import '../../main.dart';
 import '../apps/app_catalog.dart';
+import '../apps/apple_sf.dart';
 import 'liquid_glass.dart';
 
 class LockScreen extends StatefulWidget {
@@ -108,8 +109,8 @@ class _LockScreenState extends State<LockScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _RoundIcon(icon: Icons.flashlight_on_outlined),
-                        _RoundIcon(icon: Icons.camera_alt_outlined),
+                        _RoundIcon(icon: AppleSymbol.flashlight),
+                        _RoundIcon(icon: AppleSymbol.camera),
                       ],
                     ),
                     const SizedBox(height: 10),
