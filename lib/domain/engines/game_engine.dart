@@ -130,4 +130,131 @@ class GameEngine extends ChangeNotifier {
         (n.appId == 'pulse' || n.appId == 'whatsapp') && !n.read)) {
       n.read = true;
     }
-    notifyListe
+    notifyListeners();
+  }
+
+  bool isConversationUnread(Conversation conv) {
+    if (!conv.unread) return false;
+    return !progress.openedConversations.contains(conv.id);
+  }
+
+  int get unreadWhatsAppCount => c.conversations
+      .where(isConversationUnread)
+      .length;
+
+  void markMessageOpened(String id, List<String> clues) {
+    progress.openedMessages.add(id);
+    revealFromContent(clues);
+    notifyListeners();
+  }
+
+  void viewPhoto(String id, List<String> clues) {
+    progress.viewedPhotos.add(id);
+    revealFromContent(clues);
+    notifyListeners();
+  }
+
+  void unlockHotspot(PhotoHotspot hs) {
+    revealFromContent(hs.revealsClueIds);
+  }
+
+  bool isContentUnlocked(String contentId) {
+    // conteúdo sem trava = liberado; com trava precisa estar em unlockedContent
+    return progress.unlockedContent.contains(contentId);
+  }
+
+  bool isMessageReadable(ChatMessage m) {
+    if (!m.locked) return true;
+    if (m.unlockWithClueIds.isEmpty) {
+      return progress.unlockedContent.contains(m.id);
+    }
+    return m.unlockWithClueIds.every(progress.discoveredClues.contains);
+  }
+
+  bool isTimelineVisible(TimelineEvent e) {
+    if (e.initiallyVisible) return true;
+    if (progress.unlockedTimeline.contains(e.id)) return true;
+    if (e.unlockWithClueIds.isEmpty) return false;
+    return e.unlockWithClueIds.every(progress.discoveredClues.contains);
+  }
+
+  bool trySolvePuzzle(String puzzleId, String attempt) {
+    final puzzle = c.puzzles.where((e) => e.id == puzzleId).firstOrNull;
+    if (puzzle == null) return false;
+    final normalized = attempt.trim().toLowerCase();
+    final ok = normalized == puzzle.answer.toLowerCase() ||
+        puzzle.alternateAnswers.any((a) => a.toLowerCase() == normalized);
+    if (!ok) return false;
+    progress.solvedPuzzles.add(puzzleId);
+    for (final id in puzzle.unlockOnSolve) {
+      progress.unlockedContent.add(id);
+      discoverClue(id);
+    }
+    revealFromContent(puzzle.relatedClueIds);
+    _applyUnlockRules();
+    _recomputeScores();
+    notifyListeners();
+    return true;
+  }
+
+  void markContradiction(String id) {
+    final contra = c.contradictions.where((e) => e.id == id).firstOrNull;
+    if (contra == null) return;
+    final hasEvidence =
+        contra.evidenceClueIds.every(progress.discoveredClues.contains);
+    if (!hasEvidence) return;
+    progress.markedContradictions.add(id);
+    revealFromContent(contra.revealsClueIds);
+    _recomputeScores();
+    notifyListeners();
+  }
+
+  /// Resultado de uma conexão (smart deduction / contradição).
+  BoardConnectionResult addBoardConnection(
+    String fromId,
+    String toId, {
+    String? label,
+    BoardRelationType? relation,
+  }) {
+    final inferred = _inferRelation(fromId, toId);
+    final conn = BoardConnection(
+      id: _uuid.v4(),
+      fromId: fromId,
+      toId: toId,
+      label: label ?? inferred.label,
+      relation: relation ?? inferred.relation,
+      isSmart: inferred.isSmart,
+      deductionText: inferred.deductionText,
+    );
+    progress.boardConnections.add(conn);
+
+    // Auto-marcar contradições quando as evidências forem ligadas.
+    for (final contra in c.contradictions) {
+      if (progress.markedContradictions.contains(contra.id)) continue;
+      final ids = contra.evidenceClueIds.toSet();
+      if (ids.contains(fromId) && ids.contains(toId)) {
+        markContradiction(contra.id);
+      }
+    }
+
+    notifyListeners();
+    return BoardConnectionResult(
+      connection: conn,
+      deductionText: inferred.deductionText,
+      isContradiction: inferred.relation == BoardRelationType.contradicts,
+    );
+  }
+
+  void removeBoardConnection(String id) {
+    progress.boardConnections.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void setBoardNodeLayout(String nodeId, BoardNodeLayout layout) {
+    progress.boardLayouts[nodeId] = layout;
+    notifyListeners();
+  }
+
+  void moveBoardNode(String nodeId, double x, double y) {
+    final prev = progress.boardLayouts[nodeId];
+    progress.boardLayouts[nodeId] = (prev ?? cons
