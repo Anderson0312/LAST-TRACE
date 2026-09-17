@@ -167,3 +167,164 @@ class GameEngine extends ChangeNotifier {
     if (!m.locked) return true;
     if (m.unlockWithClueIds.isEmpty) {
       return progress.unlockedContent.contains(m.id);
+    }
+    return m.unlockWithClueIds.every(progress.discoveredClues.contains);
+  }
+
+  bool isTimelineVisible(TimelineEvent e) {
+    if (e.initiallyVisible) return true;
+    if (progress.unlockedTimeline.contains(e.id)) return true;
+    if (e.unlockWithClueIds.isEmpty) return false;
+    return e.unlockWithClueIds.every(progress.discoveredClues.contains);
+  }
+
+  bool trySolvePuzzle(String puzzleId, String attempt) {
+    final puzzle = c.puzzles.where((e) => e.id == puzzleId).firstOrNull;
+    if (puzzle == null) return false;
+    final normalized = attempt.trim().toLowerCase();
+    final ok = normalized == puzzle.answer.toLowerCase() ||
+        puzzle.alternateAnswers.any((a) => a.toLowerCase() == normalized);
+    if (!ok) return false;
+    progress.solvedPuzzles.add(puzzleId);
+    for (final id in puzzle.unlockOnSolve) {
+      progress.unlockedContent.add(id);
+      discoverClue(id);
+    }
+    revealFromContent(puzzle.relatedClueIds);
+    _applyUnlockRules();
+    _recomputeScores();
+    notifyListeners();
+    return true;
+  }
+
+  void markContradiction(String id) {
+    final contra = c.contradictions.where((e) => e.id == id).firstOrNull;
+    if (contra == null) return;
+    final hasEvidence =
+        contra.evidenceClueIds.every(progress.discoveredClues.contains);
+    if (!hasEvidence) return;
+    progress.markedContradictions.add(id);
+    revealFromContent(contra.revealsClueIds);
+    _recomputeScores();
+    notifyListeners();
+  }
+
+  /// Resultado de uma conexão (smart deduction / contradição).
+  BoardConnectionResult addBoardConnection(
+    String fromId,
+    String toId, {
+    String? label,
+    BoardRelationType? relation,
+  }) {
+    final inferred = _inferRelation(fromId, toId);
+    final conn = BoardConnection(
+      id: _uuid.v4(),
+      fromId: fromId,
+      toId: toId,
+      label: label ?? inferred.label,
+      relation: relation ?? inferred.relation,
+      isSmart: inferred.isSmart,
+      deductionText: inferred.deductionText,
+    );
+    progress.boardConnections.add(conn);
+
+    // Auto-marcar contradições quando as evidências forem ligadas.
+    for (final contra in c.contradictions) {
+      if (progress.markedContradictions.contains(contra.id)) continue;
+      final ids = contra.evidenceClueIds.toSet();
+      if (ids.contains(fromId) && ids.contains(toId)) {
+        markContradiction(contra.id);
+      }
+    }
+
+    notifyListeners();
+    return BoardConnectionResult(
+      connection: conn,
+      deductionText: inferred.deductionText,
+      isContradiction: inferred.relation == BoardRelationType.contradicts,
+    );
+  }
+
+  void removeBoardConnection(String id) {
+    progress.boardConnections.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void setBoardNodeLayout(String nodeId, BoardNodeLayout layout) {
+    progress.boardLayouts[nodeId] = layout;
+    notifyListeners();
+  }
+
+  void moveBoardNode(String nodeId, double x, double y) {
+    final prev = progress.boardLayouts[nodeId];
+    progress.boardLayouts[nodeId] = (prev ?? const BoardNodeLayout(x: 0, y: 0))
+        .copyWith(x: x, y: y, pinnedToBoard: true);
+    notifyListeners();
+  }
+
+  BoardNodeLayout ensureBoardLayout(String nodeId, {int seed = 0}) {
+    final existing = progress.boardLayouts[nodeId];
+    if (existing != null) return existing;
+    final layout = _defaultLayoutFor(nodeId, seed);
+    progress.boardLayouts[nodeId] = layout;
+    return layout;
+  }
+
+  BoardNodeLayout _defaultLayoutFor(String nodeId, int seed) {
+    final h = nodeId.hashCode.abs() + seed * 17;
+    final col = h % 5;
+    final row = (h ~/ 5) % 6;
+    final rot = ((h % 11) - 5) * 0.012;
+    return BoardNodeLayout(
+      x: 180 + col * 220.0 + (h % 30).toDouble(),
+      y: 160 + row * 200.0 + ((h ~/ 3) % 40).toDouble(),
+      rotation: rot,
+    );
+  }
+
+  void addInvestigatorNote(
+    String text,
+    NoteTag tag, {
+    double? boardX,
+    double? boardY,
+  }) {
+    final idx = progress.investigatorNotes.length;
+    progress.investigatorNotes.insert(
+      0,
+      InvestigatorNote(
+        id: _uuid.v4(),
+        text: text,
+        tag: tag,
+        boardX: boardX ?? (320 + (idx % 4) * 40.0),
+        boardY: boardY ?? (520 + (idx % 3) * 50.0),
+        colorStyle: idx % 4,
+        rotation: -0.05 + (idx % 5) * 0.02,
+      ),
+    );
+    notifyListeners();
+  }
+
+  void updateInvestigatorNote(InvestigatorNote note) {
+    final i = progress.investigatorNotes.indexWhere((e) => e.id == note.id);
+    if (i < 0) return;
+    progress.investigatorNotes[i] = note;
+    notifyListeners();
+  }
+
+  void removeInvestigatorNote(String id) {
+    progress.investigatorNotes.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void addBoardTheory({
+    required String title,
+    required String body,
+    List<String> evidenceIds = const [],
+  }) {
+    final n = progress.boardTheories.length + 1;
+    progress.boardTheories.add(BoardTheory(
+      id: _uuid.v4(),
+      title: title.isEmpty ? 'Teoria #$n' : title,
+      body: body,
+      evidenceIds: evidenceIds,
+      boardX: 7
