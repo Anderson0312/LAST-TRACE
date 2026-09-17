@@ -444,48 +444,50 @@ class NoteBoardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = BoardTheme.stickyFor(note.colorStyle);
+    final content = SizedBox(
+      width: 120,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
+            decoration: BoxDecoration(
+              color: bg,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                  offset: const Offset(2, 3),
+                ),
+              ],
+            ),
+            child: Text(
+              note.text,
+              maxLines: 7,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: BoardTheme.polaroidInk,
+                fontSize: 11,
+                height: 1.3,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(child: BoardPin(onConnectTap: onConnect)),
+          ),
+        ],
+      ),
+    );
+    if (onTap == null && onLongPress == null) return content;
     return GestureDetector(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: SizedBox(
-        width: 120,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
-              decoration: BoxDecoration(
-                color: bg,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 8,
-                    offset: const Offset(2, 3),
-                  ),
-                ],
-              ),
-              child: Text(
-                note.text,
-                maxLines: 7,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: BoardTheme.polaroidInk,
-                  fontSize: 11,
-                  height: 1.3,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Center(child: BoardPin(onConnectTap: onConnect)),
-            ),
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 }
@@ -587,64 +589,66 @@ class _PolaroidShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: SizedBox(
-        width: width,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
-              decoration: BoxDecoration(
-                color: paperTone ?? BoardTheme.polaroid,
-                border: borderColor != null
-                    ? Border.all(color: borderColor!, width: 1.2)
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    blurRadius: 10,
-                    offset: const Offset(2, 4),
-                  ),
-                ],
-              ),
-              child: child,
+    final content = SizedBox(
+      width: width,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+            decoration: BoxDecoration(
+              color: paperTone ?? BoardTheme.polaroid,
+              border: borderColor != null
+                  ? Border.all(color: borderColor!, width: 1.2)
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 10,
+                  offset: const Offset(2, 4),
+                ),
+              ],
             ),
+            child: child,
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(child: pin),
+          ),
+          if (badge != null)
             Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Center(child: pin),
-            ),
-            if (badge != null)
-              Positioned(
-                top: 14,
-                right: -4,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: badge == 'SHARED'
-                        ? BoardTheme.theoryBorder
-                        : BoardTheme.corkGrain,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w800,
-                    ),
+              top: 14,
+              right: -4,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: badge == 'SHARED'
+                      ? BoardTheme.theoryBorder
+                      : BoardTheme.corkGrain,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Text(
+                  badge!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
+    );
+    if (onTap == null && onLongPress == null) return content;
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: content,
     );
   }
 }
