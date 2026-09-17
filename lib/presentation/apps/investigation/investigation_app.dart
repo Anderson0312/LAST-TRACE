@@ -78,6 +78,8 @@ class _InvestigationAppState extends State<InvestigationApp>
           Expanded(
             child: TabBarView(
               controller: tabs,
+              // Evita que o swipe horizontal das abas “roube” o pan do quadro.
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 const InvestigationBoard(),
                 _clues(engine, coop),

@@ -11,7 +11,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-ROOT = Path("/agent/ultimo_acesso/assets/images")
+# Repo root = parent of scripts/
+ROOT = Path(__file__).resolve().parents[1] / "assets" / "images"
 PHOTOS = ROOT / "photos"
 AVATARS = ROOT / "avatars"
 WALLS = ROOT / "wallpapers"

@@ -34,6 +34,7 @@ class _InvestigationBoardState extends State<InvestigationBoard>
   Offset? _draftCursor;
   String? _selectedId;
   String? _freshConnectionId;
+  String? _draggingNodeId;
   String _search = '';
   bool _showTimeline = false;
   late final AnimationController _pulse;
@@ -56,26 +57,47 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     super.dispose();
   }
 
+  double get _currentScale => _transform.value.getMaxScaleOnAxis();
+
+  void _setTransform({required double scale, required Offset topLeft}) {
+    final s = scale.clamp(0.12, 3.0);
+    _transform.value = Matrix4.identity()
+      ..translateByDouble(topLeft.dx, topLeft.dy, 0, 1)
+      ..scaleByDouble(s, s, 1, 1);
+  }
+
   void _centerBoard() {
     final size = MediaQuery.sizeOf(context);
-    final scale = 0.42;
+    final isPhone = size.shortestSide < 600;
+    final scale = isPhone ? 0.55 : 0.42;
     final dx = (size.width - boardW * scale) / 2;
-    final dy = (size.height * 0.35 - boardH * scale * 0.2);
-    _transform.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(scale, scale, 1, 1);
+    final dy = isPhone ? 40.0 : (size.height * 0.35 - boardH * scale * 0.2);
+    _setTransform(scale: scale, topLeft: Offset(dx, dy));
   }
 
   void _fitAll() {
     final size = MediaQuery.sizeOf(context);
     final sx = size.width / boardW;
     final sy = (size.height * 0.72) / boardH;
-    final scale = math.min(sx, sy).clamp(0.22, 0.55);
+    final scale = math.min(sx, sy).clamp(0.18, 0.7);
     final dx = (size.width - boardW * scale) / 2;
     final dy = 24.0;
-    _transform.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(scale, scale, 1, 1);
+    _setTransform(scale: scale, topLeft: Offset(dx, dy));
+  }
+
+  void _zoomBy(double factor) {
+    final size = MediaQuery.sizeOf(context);
+    final m = _transform.value;
+    final oldScale = m.getMaxScaleOnAxis();
+    final newScale = (oldScale * factor).clamp(0.12, 3.0);
+    // Mantém o centro da tela fixo ao zoomar pelos botões.
+    final focal = Offset(size.width / 2, size.height * 0.38);
+    final sceneBefore = _transform.toScene(focal);
+    final next = Matrix4.identity()
+      ..translateByDouble(focal.dx, focal.dy, 0, 1)
+      ..scaleByDouble(newScale, newScale, 1, 1)
+      ..translateByDouble(-sceneBefore.dx, -sceneBefore.dy, 0, 1);
+    _transform.value = next;
   }
 
   @override
@@ -105,26 +127,36 @@ class _InvestigationBoardState extends State<InvestigationBoard>
             children: [
               InteractiveViewer(
                 transformationController: _transform,
-                minScale: 0.2,
-                maxScale: 2.2,
-                boundaryMargin: const EdgeInsets.all(600),
+                minScale: 0.12,
+                maxScale: 3.0,
+                boundaryMargin: const EdgeInsets.all(1600),
                 constrained: false,
+                // Um dedo = pan; pinça = zoom. Cartões não capturam pan.
+                panEnabled: _draggingNodeId == null,
+                scaleEnabled: _draggingNodeId == null,
+                trackpadScrollCausesScale: true,
+                interactionEndFrictionCoefficient: 0.00012,
                 child: SizedBox(
                   width: boardW,
                   height: boardH,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const Positioned.fill(child: _CorkBackground()),
+                      // Fundo recebe hits em toda a área → pan fácil no mobile.
+                      const Positioned.fill(
+                        child: _CorkBackground(absorbPointers: true),
+                      ),
                       Positioned.fill(
-                        child: BoardWireLayer(
-                          connections: engine.progress.boardConnections,
-                          pinCenters: pinCenters,
-                          draftFrom: _connectFrom != null
-                              ? pinCenters[_connectFrom!]
-                              : null,
-                          draftTo: _draftCursor,
-                          freshConnectionId: _freshConnectionId,
+                        child: IgnorePointer(
+                          child: BoardWireLayer(
+                            connections: engine.progress.boardConnections,
+                            pinCenters: pinCenters,
+                            draftFrom: _connectFrom != null
+                                ? pinCenters[_connectFrom!]
+                                : null,
+                            draftTo: _draftCursor,
+                            freshConnectionId: _freshConnectionId,
+                          ),
                         ),
                       ),
                       for (final node in nodes)
@@ -134,13 +166,32 @@ class _InvestigationBoardState extends State<InvestigationBoard>
                             top: node.layout.y,
                             child: Transform.rotate(
                               angle: node.layout.rotation,
-                              child: _draggableNode(engine, coop, node),
+                              child: _boardNodeGestures(engine, coop, node),
                             ),
                           ),
                     ],
                   ),
                 ),
               ),
+              if (_draggingNodeId != null)
+                Positioned(
+                  left: 12,
+                  right: 72,
+                  top: 8,
+                  child: Material(
+                    color: BoardTheme.corkGrain.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Text(
+                        'Modo mover · arraste o cartão · solte para fixar',
+                        style: TextStyle(fontSize: 11, color: Colors.white70),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 right: 10,
                 bottom: 12,
@@ -183,6 +234,11 @@ class _InvestigationBoardState extends State<InvestigationBoard>
               fontSize: 12,
               fontStyle: FontStyle.italic,
             ),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Arraste para mover o quadro · pinça ou +/- para zoom · segure um cartão para reposicionar',
+            style: TextStyle(color: Colors.white30, fontSize: 9),
           ),
           const SizedBox(height: 6),
           Row(
@@ -286,6 +342,10 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _miniFab(Icons.add, 'Aproximar', () => _zoomBy(1.28)),
+        const SizedBox(height: 8),
+        _miniFab(Icons.remove, 'Afastar', () => _zoomBy(1 / 1.28)),
+        const SizedBox(height: 8),
         _miniFab(Icons.center_focus_strong, 'Centro', _centerBoard),
         const SizedBox(height: 8),
         _miniFab(Icons.zoom_out_map, 'Ver tudo', _fitAll),
@@ -442,49 +502,74 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     );
   }
 
-  Widget _draggableNode(
+  Widget _boardNodeGestures(
     GameEngine engine,
     CoopEngine? coop,
     _BoardNode node,
   ) {
+    final moving = _draggingNodeId == node.id;
     return GestureDetector(
-      onPanUpdate: (d) {
-        if (_connectFrom != null) {
-          setState(() {
-            _draftCursor = Offset(
-              node.layout.x + d.localPosition.dx,
-              node.layout.y + d.localPosition.dy,
-            );
-          });
-          return;
-        }
-        final scale = _transform.value.getMaxScaleOnAxis();
-        engine.moveBoardNode(
-          node.id,
-          (node.layout.x + d.delta.dx / scale)
-              .clamp(20.0, boardW - cardW - 20),
-          (node.layout.y + d.delta.dy / scale)
-              .clamp(20.0, boardH - cardH - 20),
-        );
+      behavior: moving ? HitTestBehavior.opaque : HitTestBehavior.translucent,
+      onTap: moving ? null : () => _onTapNode(engine, node),
+      onLongPressStart: (_) {
+        if (_connectFrom != null) return;
+        HapticFeedback.mediumImpact();
+        _dragOrigins[node.id] = Offset(node.layout.x, node.layout.y);
+        setState(() => _draggingNodeId = node.id);
       },
-      onPanEnd: (_) {
-        if (_connectFrom != null && _draftCursor != null) {
-          _tryDropConnect(engine, node);
-        }
-        autosave(context);
-      },
-      child: _cardFor(engine, coop, node),
+      onLongPressMoveUpdate: moving
+          ? (d) {
+              final origin = _dragOrigins[node.id] ??
+                  Offset(node.layout.x, node.layout.y);
+              final scale = _currentScale;
+              engine.moveBoardNode(
+                node.id,
+                (origin.dx + d.offsetFromOrigin.dx / scale)
+                    .clamp(20.0, boardW - cardW - 20),
+                (origin.dy + d.offsetFromOrigin.dy / scale)
+                    .clamp(20.0, boardH - cardH - 20),
+              );
+            }
+          : null,
+      onLongPressEnd: (_) => _endNodeDrag(node.id),
+      onLongPressCancel: () => _endNodeDrag(node.id, save: false),
+      // Após "Mover" no modal, arraste normal reposiciona o cartão.
+      onPanUpdate: moving
+          ? (d) {
+              final scale = _currentScale;
+              engine.moveBoardNode(
+                node.id,
+                (node.layout.x + d.delta.dx / scale)
+                    .clamp(20.0, boardW - cardW - 20),
+                (node.layout.y + d.delta.dy / scale)
+                    .clamp(20.0, boardH - cardH - 20),
+              );
+            }
+          : null,
+      onPanEnd: moving ? (_) => _endNodeDrag(node.id) : null,
+      child: AnimatedScale(
+        scale: moving ? 1.06 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: _cardFor(engine, coop, node),
+      ),
     );
   }
 
-  void _tryDropConnect(GameEngine engine, _BoardNode fromNode) {
-    // Conexão por pan: precisa de segundo nó próximo ao cursor — simplificado:
-    // usa modo tap-to-connect.
-    setState(() => _draftCursor = null);
+  void _endNodeDrag(String id, {bool save = true}) {
+    if (_draggingNodeId != id) return;
+    setState(() {
+      _draggingNodeId = null;
+      _dragOrigins.remove(id);
+    });
+    if (save) autosave(context);
   }
 
+  final Map<String, Offset> _dragOrigins = {};
+
   Widget _cardFor(GameEngine engine, CoopEngine? coop, _BoardNode node) {
-    final selected = _selectedId == node.id || _connectFrom == node.id;
+    final selected = _selectedId == node.id ||
+        _connectFrom == node.id ||
+        _draggingNodeId == node.id;
     final badge = node.ownerBadge;
 
     Widget card;
@@ -493,30 +578,22 @@ class _InvestigationBoardState extends State<InvestigationBoard>
         card = PersonBoardCard(
           character: node.character!,
           ownerBadge: badge,
-          onTap: () => _onTapNode(engine, node),
-          onLongPress: () => _startConnect(node.id),
           onConnect: () => _startConnect(node.id),
         );
       case _NodeKind.clue:
         card = ClueBoardCard(
           clue: node.clue!,
           ownerBadge: badge,
-          onTap: () => _onTapNode(engine, node),
-          onLongPress: () => _startConnect(node.id),
           onConnect: () => _startConnect(node.id),
         );
       case _NodeKind.note:
         card = NoteBoardCard(
           note: node.note!,
-          onTap: () => _onTapNode(engine, node),
-          onLongPress: () => _startConnect(node.id),
           onConnect: () => _startConnect(node.id),
         );
       case _NodeKind.theory:
         card = TheoryBoardCard(
           theory: node.theory!,
-          onTap: () => _onTapNode(engine, node),
-          onLongPress: () => _startConnect(node.id),
           onConnect: () => _startConnect(node.id),
         );
     }
@@ -667,6 +744,20 @@ class _InvestigationBoardState extends State<InvestigationBoard>
                       },
                       icon: const Icon(Icons.timeline),
                       label: const Text('Conectar'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _dragOrigins[node.id] =
+                            Offset(node.layout.x, node.layout.y);
+                        setState(() => _draggingNodeId = node.id);
+                        HapticFeedback.selectionClick();
+                      },
+                      icon: const Icon(Icons.open_with, size: 18),
+                      label: const Text('Mover'),
                     ),
                   ),
                   if (node.kind == _NodeKind.note) ...[
@@ -1044,13 +1135,21 @@ class _BoardNode {
 }
 
 class _CorkBackground extends StatelessWidget {
-  const _CorkBackground();
+  final bool absorbPointers;
+
+  const _CorkBackground({this.absorbPointers = false});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
+    final paint = CustomPaint(
       painter: _CorkPainter(),
       child: const SizedBox.expand(),
+    );
+    // Área vazia precisa ser “hit-testável” para o pan do InteractiveViewer.
+    if (!absorbPointers) return paint;
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      child: paint,
     );
   }
 }
