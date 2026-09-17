@@ -588,3 +588,164 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     _openDetail(engine, node);
   }
 
+  Future<void> _openDetail(GameEngine engine, _BoardNode node) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xF0121014),
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.paddingOf(ctx).bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      node.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              Text(
+                node.subtitle,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                node.body,
+                style: const TextStyle(height: 1.4, fontSize: 14),
+              ),
+              if (node.related.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                const Text(
+                  'Relacionada a',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white54,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: node.related
+                      .map((e) => Chip(
+                            label: Text(e, style: const TextStyle(fontSize: 11)),
+                            visualDensity: VisualDensity.compact,
+                          ))
+                      .toList(),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: BoardTheme.thread,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _startConnect(node.id);
+                      },
+                      icon: const Icon(Icons.timeline),
+                      label: const Text('Conectar'),
+                    ),
+                  ),
+                  if (node.kind == _NodeKind.note) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Excluir nota',
+                      onPressed: () {
+                        engine.removeInvestigatorNote(node.id);
+                        Navigator.pop(ctx);
+                        autosave(context);
+                      },
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                  if (node.kind == _NodeKind.theory) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Excluir teoria',
+                      onPressed: () {
+                        engine.removeBoardTheory(node.id);
+                        Navigator.pop(ctx);
+                        autosave(context);
+                      },
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _addNote(GameEngine engine) async {
+    final text = TextEditingController();
+    var tag = NoteTag.theory;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: OsisTheme.bgElevated,
+        title: const Text('O que você descobriu?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: text,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Escreva no post-it…',
+              ),
+            ),
+            DropdownButtonFormField<NoteTag>(
+              initialValue: tag,
+              items: NoteTag.values
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) tag = v;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Fixar no quadro')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (ok == true && text.text.trim().isNotEmpty) {
+      engine.addInvestigatorNote(text.text.trim(), tag);
+      await autosave(context);
+      HapticFeedback.lightImpact();
+    }
+  }
+
