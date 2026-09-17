@@ -270,7 +270,7 @@ class GameEngine extends ChangeNotifier {
     return layout;
   }
 
-  BoardNodeLayout _defaultLayoutFor(String nodeId, {int seed = 0}) {
+  BoardNodeLayout _defaultLayoutFor(String nodeId, int seed) {
     final h = nodeId.hashCode.abs() + seed * 17;
     final col = h % 5;
     final row = (h ~/ 5) % 6;
