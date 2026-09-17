@@ -1,1 +1,1 @@
-PLACEHOLDER_BOARD
+__LOAD_FROM__:/tmp/board_only.txt
