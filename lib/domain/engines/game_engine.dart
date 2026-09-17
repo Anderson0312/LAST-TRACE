@@ -630,4 +630,150 @@ class GameEngine extends ChangeNotifier {
       return 'Confira Mapas e Ajustes → Localização. O aparelho foi achado no São Lucas.';
     }
     if (miss('CLUE_CALL_UNKNOWN') ||
-        miss('CLU
+        miss('CLUE_CALL_DANIEL') ||
+        miss('CLUE_VOICEMAIL')) {
+      return 'Abra Chamadas: há uma linha desconhecida e um correio de voz.';
+    }
+    if (miss('CLUE_NOTE_IF') || miss('CLUE_NOTE_R') || miss('CLUE_R_THREAD')) {
+      return 'Notas e Contatos: procure "R." e a anotação "se alguma coisa acontecer".';
+    }
+    if (miss('CLUE_EMAIL_DANIEL') ||
+        miss('CLUE_FILE_AURORA') ||
+        miss('CLUE_CONTRACT_AURORA')) {
+      return 'Mail e Arquivos: procure Aurora, contratos e e-mails do Daniel.';
+    }
+    if (miss('CLUE_PHOTO_PLATE') ||
+        miss('CLUE_PHOTO_REFLECTION') ||
+        miss('CLUE_META_MISMATCH')) {
+      return 'Galeria: toque nas fotos e explore os pontos quentes (placa, reflexo, metadados).';
+    }
+    if (miss('CLUE_REMOTE_ACCESS') || miss('CLUE_FILE_DAT')) {
+      return 'Ajustes / Arquivos: arquivo_00017.dat e sinais de acesso remoto.';
+    }
+    if (progress.investigationScore < 55) {
+      return 'Monte o Quadro: ligue pistas, marque contradições e depois vá em Conclusão.';
+    }
+    return 'Você já tem material. Abra Quadro → Conclusão e escolha quem acusar.';
+  }
+
+  /// Drena a bateria conforme o tempo de jogo — sem cronômetro na Island.
+  void _syncDyingBattery() {
+    if (!progress.deviceUnlocked || progress.chosenEndingId != null) return;
+
+    final start = (caseData?.osState['battery'] as int?) ?? 87;
+    final t = progress.timePressure.clamp(0.0, 1.0);
+    // Queda lenta no começo, acelerada no final (celular “morrendo”).
+    final drain = math.pow(t, 1.35).toDouble();
+    var level = (start * (1.0 - drain)).round();
+    if (progress.remoteAccessDetected) {
+      level -= 8;
+    }
+    if (t >= 0.92) {
+      level = math.min(level, 4);
+    } else if (t >= 0.78) {
+      level = math.min(level, 12);
+    } else if (t >= 0.55) {
+      level = math.min(level, 28);
+    }
+    level = level.clamp(1, 100);
+
+    final previous = progress.batteryPercent;
+    progress = progress.copyWith(batteryPercent: level);
+    _maybeWarnLowBattery(previous, level);
+  }
+
+  void _maybeWarnLowBattery(int previous, int now) {
+    void cross(int threshold, String flag, String label) {
+      if (now > threshold || previous <= threshold) return;
+      if (progress.flags[flag] == true) return;
+      progress.flags[flag] = true;
+
+      if (islandState == IslandState.idle ||
+          islandState == IslandState.lowBattery) {
+        islandState = IslandState.lowBattery;
+        islandLabel = label;
+        Future.delayed(const Duration(seconds: 4), () {
+          if (islandState == IslandState.lowBattery) {
+            islandState = IslandState.idle;
+            islandLabel = '';
+            notifyListeners();
+          }
+        });
+      }
+
+      if (threshold <= 20) {
+        notifications.insert(
+          0,
+          PhoneNotification(
+            id: _uuid.v4(),
+            appId: 'settings',
+            title: threshold <= 5 ? 'Bateria crítica' : 'Bateria fraca',
+            body: threshold <= 5
+                ? 'O aparelho pode desligar a qualquer momento. Conclua a investigação.'
+                : 'Restam $now%. Priorize pistas e abra o Quadro → Conclusão.',
+          ),
+        );
+      }
+    }
+
+    cross(35, 'bat_warn_35', 'bateria 35%');
+    cross(20, 'bat_warn_20', 'bateria fraca');
+    cross(10, 'bat_warn_10', 'bateria crítica');
+    cross(5, 'bat_warn_5', 'desligando…');
+  }
+
+  void _checkLiveEvents({required String trigger, Map<String, dynamic>? extra}) {
+    if (caseData == null) return;
+    for (final ev in c.liveEvents.where((e) => e.trigger == trigger)) {
+      if (progress.firedLiveEvents.contains(ev.id)) continue;
+      if (!_matchesCondition(ev.condition, extra)) continue;
+      progress.firedLiveEvents.add(ev.id);
+      Future.delayed(Duration(seconds: ev.delaySeconds), () {
+        _fireLiveEvent(ev);
+      });
+    }
+  }
+
+  bool _matchesCondition(Map<String, dynamic> cond, Map<String, dynamic>? extra) {
+    if (cond['minScore'] != null &&
+        progress.investigationScore < (cond['minScore'] as num).toDouble()) {
+      return false;
+    }
+    if (cond['maxScore'] != null &&
+        progress.investigationScore > (cond['maxScore'] as num).toDouble()) {
+      return false;
+    }
+    if (cond['minElapsedSeconds'] != null &&
+        progress.playSeconds < (cond['minElapsedSeconds'] as num).toInt()) {
+      return false;
+    }
+    if (cond['maxElapsedSeconds'] != null &&
+        progress.playSeconds > (cond['maxElapsedSeconds'] as num).toInt()) {
+      return false;
+    }
+    if (cond['minClueCount'] != null &&
+        progress.discoveredClues.length < (cond['minClueCount'] as num).toInt()) {
+      return false;
+    }
+    if (cond['maxClueCount'] != null &&
+        progress.discoveredClues.length > (cond['maxClueCount'] as num).toInt()) {
+      return false;
+    }
+    if (cond['clueId'] != null &&
+        !progress.discoveredClues.contains(cond['clueId'])) {
+      return false;
+    }
+    if (cond['anyClues'] is List) {
+      final list = (cond['anyClues'] as List).cast<String>();
+      if (!list.any(progress.discoveredClues.contains)) return false;
+    }
+    if (cond['allClues'] is List) {
+      final list = (cond['allClues'] as List).cast<String>();
+      if (!list.every(progress.discoveredClues.contains)) return false;
+    }
+    // Dispara enquanto o jogador ainda não achou pelo menos uma destas pistas.
+    if (cond['missingAnyClues'] is List) {
+      final list = (cond['missingAnyClues'] as List).cast<String>();
+      if (list.every(progress.discoveredClues.contains)) return false;
+    }
+    
