@@ -1032,4 +1032,171 @@ class InvestigationProgress {
         suspectTrust = suspectTrust ?? {},
         suspectSuspicion = suspectSuspicion ?? {},
         lastSavedAt = lastSavedAt ?? DateTime.now(),
-        flags = flags 
+        flags = flags ?? {};
+
+  /// Segundos restantes até a bateria narrativa acabar (~30 min).
+  int get remainingSeconds =>
+      (targetPlaySeconds - playSeconds).clamp(0, targetPlaySeconds);
+
+  /// 0 = cheio de energia; 1 = bateria no fim.
+  double get timePressure =>
+      targetPlaySeconds <= 0 ? 0 : (playSeconds / targetPlaySeconds).clamp(0, 1);
+
+  InvestigationProgress copyWith({
+    Set<String>? discoveredClues,
+    Set<String>? analyzedClues,
+    Set<String>? openedConversations,
+    Set<String>? openedMessages,
+    Set<String>? unlockedContent,
+    Set<String>? unlockedTimeline,
+    Set<String>? viewedPhotos,
+    Set<String>? solvedPuzzles,
+    Set<String>? markedContradictions,
+    Set<String>? firedLiveEvents,
+    Set<String>? unlockedEndings,
+    List<BoardConnection>? boardConnections,
+    List<InvestigatorNote>? investigatorNotes,
+    List<BoardTheory>? boardTheories,
+    Map<String, BoardNodeLayout>? boardLayouts,
+    Map<String, int>? suspectTrust,
+    Map<String, int>? suspectSuspicion,
+    double? investigationScore,
+    double? clueCompletion,
+    double? timelineCompletion,
+    double? evidenceQuality,
+    bool? deviceUnlocked,
+    bool? remoteAccessDetected,
+    int? batteryPercent,
+    int? playSeconds,
+    int? targetPlaySeconds,
+    String? accusedCharacterId,
+    String? chosenEndingId,
+    DateTime? lastSavedAt,
+    Map<String, dynamic>? flags,
+  }) {
+    return InvestigationProgress(
+      caseId: caseId,
+      discoveredClues: discoveredClues ?? this.discoveredClues,
+      analyzedClues: analyzedClues ?? this.analyzedClues,
+      openedConversations: openedConversations ?? this.openedConversations,
+      openedMessages: openedMessages ?? this.openedMessages,
+      unlockedContent: unlockedContent ?? this.unlockedContent,
+      unlockedTimeline: unlockedTimeline ?? this.unlockedTimeline,
+      viewedPhotos: viewedPhotos ?? this.viewedPhotos,
+      solvedPuzzles: solvedPuzzles ?? this.solvedPuzzles,
+      markedContradictions: markedContradictions ?? this.markedContradictions,
+      firedLiveEvents: firedLiveEvents ?? this.firedLiveEvents,
+      unlockedEndings: unlockedEndings ?? this.unlockedEndings,
+      boardConnections: boardConnections ?? this.boardConnections,
+      investigatorNotes: investigatorNotes ?? this.investigatorNotes,
+      boardTheories: boardTheories ?? this.boardTheories,
+      boardLayouts: boardLayouts ?? this.boardLayouts,
+      suspectTrust: suspectTrust ?? this.suspectTrust,
+      suspectSuspicion: suspectSuspicion ?? this.suspectSuspicion,
+      investigationScore: investigationScore ?? this.investigationScore,
+      clueCompletion: clueCompletion ?? this.clueCompletion,
+      timelineCompletion: timelineCompletion ?? this.timelineCompletion,
+      evidenceQuality: evidenceQuality ?? this.evidenceQuality,
+      deviceUnlocked: deviceUnlocked ?? this.deviceUnlocked,
+      remoteAccessDetected: remoteAccessDetected ?? this.remoteAccessDetected,
+      batteryPercent: batteryPercent ?? this.batteryPercent,
+      playSeconds: playSeconds ?? this.playSeconds,
+      targetPlaySeconds: targetPlaySeconds ?? this.targetPlaySeconds,
+      accusedCharacterId: accusedCharacterId ?? this.accusedCharacterId,
+      chosenEndingId: chosenEndingId ?? this.chosenEndingId,
+      lastSavedAt: lastSavedAt ?? this.lastSavedAt,
+      flags: flags ?? this.flags,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'caseId': caseId,
+        'discoveredClues': discoveredClues.toList(),
+        'analyzedClues': analyzedClues.toList(),
+        'openedConversations': openedConversations.toList(),
+        'openedMessages': openedMessages.toList(),
+        'unlockedContent': unlockedContent.toList(),
+        'unlockedTimeline': unlockedTimeline.toList(),
+        'viewedPhotos': viewedPhotos.toList(),
+        'solvedPuzzles': solvedPuzzles.toList(),
+        'markedContradictions': markedContradictions.toList(),
+        'firedLiveEvents': firedLiveEvents.toList(),
+        'unlockedEndings': unlockedEndings.toList(),
+        'boardConnections': boardConnections.map((e) => e.toJson()).toList(),
+        'investigatorNotes': investigatorNotes.map((e) => e.toJson()).toList(),
+        'boardTheories': boardTheories.map((e) => e.toJson()).toList(),
+        'boardLayouts': boardLayouts.map((k, v) => MapEntry(k, v.toJson())),
+        'suspectTrust': suspectTrust,
+        'suspectSuspicion': suspectSuspicion,
+        'investigationScore': investigationScore,
+        'clueCompletion': clueCompletion,
+        'timelineCompletion': timelineCompletion,
+        'evidenceQuality': evidenceQuality,
+        'deviceUnlocked': deviceUnlocked,
+        'remoteAccessDetected': remoteAccessDetected,
+        'batteryPercent': batteryPercent,
+        'playSeconds': playSeconds,
+        'targetPlaySeconds': targetPlaySeconds,
+        'accusedCharacterId': accusedCharacterId,
+        'chosenEndingId': chosenEndingId,
+        'lastSavedAt': lastSavedAt.toIso8601String(),
+        'flags': flags,
+      };
+
+  factory InvestigationProgress.fromJson(Map<String, dynamic> j) =>
+      InvestigationProgress(
+        caseId: j['caseId'] as String,
+        discoveredClues: {...(j['discoveredClues'] as List? ?? []).cast<String>()},
+        analyzedClues: {...(j['analyzedClues'] as List? ?? []).cast<String>()},
+        openedConversations: {
+          ...(j['openedConversations'] as List? ?? []).cast<String>()
+        },
+        openedMessages: {...(j['openedMessages'] as List? ?? []).cast<String>()},
+        unlockedContent: {...(j['unlockedContent'] as List? ?? []).cast<String>()},
+        unlockedTimeline: {
+          ...(j['unlockedTimeline'] as List? ?? []).cast<String>()
+        },
+        viewedPhotos: {...(j['viewedPhotos'] as List? ?? []).cast<String>()},
+        solvedPuzzles: {...(j['solvedPuzzles'] as List? ?? []).cast<String>()},
+        markedContradictions: {
+          ...(j['markedContradictions'] as List? ?? []).cast<String>()
+        },
+        firedLiveEvents: {...(j['firedLiveEvents'] as List? ?? []).cast<String>()},
+        unlockedEndings: {...(j['unlockedEndings'] as List? ?? []).cast<String>()},
+        boardConnections: (j['boardConnections'] as List? ?? [])
+            .map((e) => BoardConnection.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        investigatorNotes: (j['investigatorNotes'] as List? ?? [])
+            .map((e) => InvestigatorNote.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        boardTheories: (j['boardTheories'] as List? ?? [])
+            .map((e) => BoardTheory.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        boardLayouts: {
+          for (final e in (j['boardLayouts'] as Map? ?? {}).entries)
+            e.key as String: BoardNodeLayout.fromJson(
+              Map<String, dynamic>.from(e.value as Map),
+            ),
+        },
+        suspectTrust: Map<String, int>.from(j['suspectTrust'] as Map? ?? {}),
+        suspectSuspicion:
+            Map<String, int>.from(j['suspectSuspicion'] as Map? ?? {}),
+        investigationScore: (j['investigationScore'] as num?)?.toDouble() ?? 0,
+        clueCompletion: (j['clueCompletion'] as num?)?.toDouble() ?? 0,
+        timelineCompletion: (j['timelineCompletion'] as num?)?.toDouble() ?? 0,
+        evidenceQuality: (j['evidenceQuality'] as num?)?.toDouble() ?? 0,
+        deviceUnlocked: j['deviceUnlocked'] as bool? ?? false,
+        remoteAccessDetected: j['remoteAccessDetected'] as bool? ?? false,
+        batteryPercent: j['batteryPercent'] as int? ?? 87,
+        playSeconds: (j['playSeconds'] as num?)?.toInt() ?? 0,
+        targetPlaySeconds: (j['targetPlaySeconds'] as num?)?.toInt() ?? 1800,
+        accusedCharacterId: j['accusedCharacterId'] as String?,
+        chosenEndingId: j['chosenEndingId'] as String?,
+        lastSavedAt: j['lastSavedAt'] != null
+            ? DateTime.parse(j['lastSavedAt'] as String)
+            : DateTime.now(),
+        flags: Map<String, dynamic>.from(j['flags'] as Map? ?? {}),
+      );
+}
+
+/// Tipo de relação e
