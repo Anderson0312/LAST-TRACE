@@ -749,3 +749,356 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     }
   }
 
+  Future<void> _addTheory(GameEngine engine) async {
+    final title = TextEditingController();
+    final body = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: OsisTheme.bgElevated,
+        title: const Text('Nova teoria'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: title,
+              decoration: const InputDecoration(hintText: 'Título'),
+            ),
+            TextField(
+              controller: body,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Hipótese e raciocínio…',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Criar')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (ok == true && body.text.trim().isNotEmpty) {
+      engine.addBoardTheory(
+        title: title.text.trim(),
+        body: body.text.trim(),
+        evidenceIds: engine.progress.discoveredClues.take(3).toList(),
+      );
+      await autosave(context);
+    }
+  }
+
+  Future<void> _promptSearch() async {
+    setState(() {});
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: OsisTheme.bgElevated,
+        title: const Text('Buscar no quadro'),
+        content: TextField(
+          autofocus: true,
+          controller: _searchCtrl,
+          decoration: const InputDecoration(
+            hintText: 'Nome, local, pista, tag…',
+          ),
+          onSubmitted: (v) {
+            setState(() => _search = v.trim().toLowerCase());
+            Navigator.pop(ctx);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _search = _searchCtrl.text.trim().toLowerCase());
+              Navigator.pop(ctx);
+            },
+            child: const Text('Buscar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _visible(_BoardNode node) {
+    if (_search.isNotEmpty) {
+      final hay =
+          '${node.title} ${node.subtitle} ${node.body} ${node.tags.join(' ')}'
+              .toLowerCase();
+      if (!hay.contains(_search)) return false;
+    }
+    switch (_filter) {
+      case BoardFilter.all:
+        return true;
+      case BoardFilter.people:
+        return node.kind == _NodeKind.person;
+      case BoardFilter.places:
+        return node.kind == _NodeKind.clue &&
+            node.clue?.type == ClueType.location;
+      case BoardFilter.events:
+        return node.kind == _NodeKind.clue &&
+            (node.clue?.type == ClueType.call ||
+                node.clue?.type == ClueType.timeline ||
+                node.clue?.type == ClueType.message);
+      case BoardFilter.clues:
+        return node.kind == _NodeKind.clue;
+      case BoardFilter.theories:
+        return node.kind == _NodeKind.theory || node.kind == _NodeKind.note;
+    }
+  }
+
+  List<_BoardNode> _buildNodes(GameEngine engine, CoopEngine? coop) {
+    final nodes = <_BoardNode>[];
+    var seed = 0;
+    final pendingLayouts = <String, BoardNodeLayout>{};
+
+    BoardNodeLayout layoutOf(String id) {
+      final existing = engine.progress.boardLayouts[id];
+      if (existing != null) return existing;
+      final layout = BoardNodeLayout(
+        x: 180 + (seed % 5) * 220.0 + (id.hashCode.abs() % 30).toDouble(),
+        y: 160 + ((seed ~/ 5) % 6) * 200.0 + ((id.hashCode.abs() ~/ 3) % 40).toDouble(),
+        rotation: ((id.hashCode.abs() % 11) - 5) * 0.012,
+      );
+      pendingLayouts[id] = layout;
+      seed++;
+      return layout;
+    }
+
+    // Vítima + personagens ligados a pistas descobertas
+    final charIds = <String>{engine.c.victimId};
+    for (final clueId in engine.progress.discoveredClues) {
+      final clue = engine.c.clues.where((e) => e.id == clueId).firstOrNull;
+      if (clue != null) charIds.addAll(clue.relatedCharacterIds);
+    }
+    for (final ch in engine.c.characters) {
+      final include = ch.id == engine.c.victimId ||
+          ch.role == CharacterRole.suspect ||
+          ch.role == CharacterRole.mysterious ||
+          charIds.contains(ch.id);
+      if (!include) continue;
+      final layout = layoutOf(ch.id);
+      nodes.add(_BoardNode(
+        id: ch.id,
+        kind: _NodeKind.person,
+        title: ch.name,
+        subtitle: ch.relationToVictim,
+        body: ch.personality,
+        layout: layout,
+        character: ch,
+        tags: [ch.role.name, ch.name],
+        related: engine.c.clues
+            .where((c) =>
+                engine.progress.discoveredClues.contains(c.id) &&
+                c.relatedCharacterIds.contains(ch.id))
+            .map((c) => c.name)
+            .take(6)
+            .toList(),
+      ));
+    }
+
+    for (final clueId in engine.progress.discoveredClues) {
+      final clue = engine.c.clues.where((e) => e.id == clueId).firstOrNull;
+      if (clue == null) continue;
+      final layout = layoutOf(clue.id);
+      String? badge;
+      if (coop != null && coop.isCoop) {
+        if (coop.sharedClueIds.contains(clue.id)) {
+          badge = 'SHARED';
+        } else if (coop.role == CoopRole.playerA) {
+          badge = 'A';
+        } else if (coop.role == CoopRole.playerB) {
+          badge = 'B';
+        }
+      }
+      nodes.add(_BoardNode(
+        id: clue.id,
+        kind: _NodeKind.clue,
+        title: clue.name,
+        subtitle: '${clue.origin} · ${clue.type.name}',
+        body: clue.content.isNotEmpty ? clue.content : clue.description,
+        layout: layout,
+        clue: clue,
+        ownerBadge: badge,
+        tags: [
+          clue.type.name,
+          clue.importance.name,
+          ...clue.relatedCharacterIds,
+        ],
+        related: [
+          ...clue.relatedClueIds.map((id) {
+            return engine.c.clues.where((e) => e.id == id).firstOrNull?.name ??
+                id;
+          }),
+          ...clue.relatedCharacterIds.map((id) {
+            return engine.c.characters
+                    .where((e) => e.id == id)
+                    .firstOrNull
+                    ?.name ??
+                id;
+          }),
+        ],
+      ));
+    }
+
+    for (final note in engine.progress.investigatorNotes) {
+      final layout = engine.progress.boardLayouts[note.id] ??
+          BoardNodeLayout(
+            x: note.boardX ?? 400,
+            y: note.boardY ?? 500,
+            rotation: note.rotation,
+          );
+      if (!engine.progress.boardLayouts.containsKey(note.id)) {
+        pendingLayouts[note.id] = layout;
+      }
+      nodes.add(_BoardNode(
+        id: note.id,
+        kind: _NodeKind.note,
+        title: 'Post-it',
+        subtitle: note.tag.name,
+        body: note.text,
+        layout: layout,
+        note: note,
+        tags: [note.tag.name, 'nota'],
+      ));
+    }
+
+    for (final theory in engine.progress.boardTheories) {
+      final layout = engine.progress.boardLayouts[theory.id] ??
+          BoardNodeLayout(
+            x: theory.boardX,
+            y: theory.boardY,
+            rotation: theory.rotation,
+          );
+      if (!engine.progress.boardLayouts.containsKey(theory.id)) {
+        pendingLayouts[theory.id] = layout;
+      }
+      nodes.add(_BoardNode(
+        id: theory.id,
+        kind: _NodeKind.theory,
+        title: theory.title,
+        subtitle: 'Teoria',
+        body: theory.body,
+        layout: layout,
+        theory: theory,
+        tags: ['teoria', ...theory.evidenceIds],
+        related: theory.evidenceIds
+            .map((id) =>
+                engine.c.clues.where((e) => e.id == id).firstOrNull?.name ?? id)
+            .toList(),
+      ));
+    }
+
+    if (pendingLayouts.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        for (final e in pendingLayouts.entries) {
+          if (!engine.progress.boardLayouts.containsKey(e.key)) {
+            engine.setBoardNodeLayout(e.key, e.value);
+          }
+        }
+      });
+    }
+
+    return nodes;
+  }
+}
+
+enum _NodeKind { person, clue, note, theory }
+
+class _BoardNode {
+  final String id;
+  final _NodeKind kind;
+  final String title;
+  final String subtitle;
+  final String body;
+  final BoardNodeLayout layout;
+  final Character? character;
+  final Clue? clue;
+  final InvestigatorNote? note;
+  final BoardTheory? theory;
+  final String? ownerBadge;
+  final List<String> tags;
+  final List<String> related;
+
+  _BoardNode({
+    required this.id,
+    required this.kind,
+    required this.title,
+    required this.subtitle,
+    required this.body,
+    required this.layout,
+    this.character,
+    this.clue,
+    this.note,
+    this.theory,
+    this.ownerBadge,
+    this.tags = const [],
+    this.related = const [],
+  });
+}
+
+class _CorkBackground extends StatelessWidget {
+  const _CorkBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _CorkPainter(),
+      child: const SizedBox.expand(),
+    );
+  }
+}
+
+class _CorkPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final base = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF2B1E14),
+          Color(0xFF3A291C),
+          Color(0xFF241810),
+          Color(0xFF332418),
+        ],
+      ).createShader(rect);
+    canvas.drawRect(rect, base);
+
+    final grain = Paint()..color = const Color(0x14F0E6D2);
+    final rng = math.Random(42);
+    for (var i = 0; i < 900; i++) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      canvas.drawCircle(Offset(x, y), rng.nextDouble() * 1.8 + 0.4, grain);
+    }
+
+    final groove = Paint()
+      ..color = const Color(0x22000000)
+      ..strokeWidth = 1;
+    for (var y = 0.0; y < size.height; y += 48) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y + 6), groove);
+    }
+
+    // Vinheta
+    final vignette = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.transparent,
+          Colors.black.withValues(alpha: 0.45),
+        ],
+        stops: const [0.55, 1],
+      ).createShader(rect);
+    canvas.drawRect(rect, vignette);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
