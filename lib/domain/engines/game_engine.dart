@@ -257,4 +257,131 @@ class GameEngine extends ChangeNotifier {
 
   void moveBoardNode(String nodeId, double x, double y) {
     final prev = progress.boardLayouts[nodeId];
-    progress.boardLayouts[nodeId] = (prev ?? cons
+    progress.boardLayouts[nodeId] = (prev ?? const BoardNodeLayout(x: 0, y: 0))
+        .copyWith(x: x, y: y, pinnedToBoard: true);
+    notifyListeners();
+  }
+
+  BoardNodeLayout ensureBoardLayout(String nodeId, {int seed = 0}) {
+    final existing = progress.boardLayouts[nodeId];
+    if (existing != null) return existing;
+    final layout = _defaultLayoutFor(nodeId, seed);
+    progress.boardLayouts[nodeId] = layout;
+    return layout;
+  }
+
+  BoardNodeLayout _defaultLayoutFor(String nodeId, int seed) {
+    final h = nodeId.hashCode.abs() + seed * 17;
+    final col = h % 5;
+    final row = (h ~/ 5) % 6;
+    final rot = ((h % 11) - 5) * 0.012;
+    return BoardNodeLayout(
+      x: 180 + col * 220.0 + (h % 30).toDouble(),
+      y: 160 + row * 200.0 + ((h ~/ 3) % 40).toDouble(),
+      rotation: rot,
+    );
+  }
+
+  void addInvestigatorNote(
+    String text,
+    NoteTag tag, {
+    double? boardX,
+    double? boardY,
+  }) {
+    final idx = progress.investigatorNotes.length;
+    progress.investigatorNotes.insert(
+      0,
+      InvestigatorNote(
+        id: _uuid.v4(),
+        text: text,
+        tag: tag,
+        boardX: boardX ?? (320 + (idx % 4) * 40.0),
+        boardY: boardY ?? (520 + (idx % 3) * 50.0),
+        colorStyle: idx % 4,
+        rotation: -0.05 + (idx % 5) * 0.02,
+      ),
+    );
+    notifyListeners();
+  }
+
+  void updateInvestigatorNote(InvestigatorNote note) {
+    final i = progress.investigatorNotes.indexWhere((e) => e.id == note.id);
+    if (i < 0) return;
+    progress.investigatorNotes[i] = note;
+    notifyListeners();
+  }
+
+  void removeInvestigatorNote(String id) {
+    progress.investigatorNotes.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void addBoardTheory({
+    required String title,
+    required String body,
+    List<String> evidenceIds = const [],
+  }) {
+    final n = progress.boardTheories.length + 1;
+    progress.boardTheories.add(BoardTheory(
+      id: _uuid.v4(),
+      title: title.isEmpty ? 'Teoria #$n' : title,
+      body: body,
+      evidenceIds: evidenceIds,
+      boardX: 700 + (n % 3) * 40.0,
+      boardY: 280 + (n % 4) * 60.0,
+    ));
+    notifyListeners();
+  }
+
+  void updateBoardTheory(BoardTheory theory) {
+    final i = progress.boardTheories.indexWhere((e) => e.id == theory.id);
+    if (i < 0) return;
+    progress.boardTheories[i] = theory;
+    notifyListeners();
+  }
+
+  void removeBoardTheory(String id) {
+    progress.boardTheories.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  _InferredRelation _inferRelation(String fromId, String toId) {
+    final fromClue = c.clues.where((e) => e.id == fromId).firstOrNull;
+    final toClue = c.clues.where((e) => e.id == toId).firstOrNull;
+    final fromChar = c.characters.where((e) => e.id == fromId).firstOrNull;
+    final toChar = c.characters.where((e) => e.id == toId).firstOrNull;
+
+    // Contradição narrativa
+    for (final contra in c.contradictions) {
+      final ids = contra.evidenceClueIds.toSet();
+      if ((ids.contains(fromId) && ids.contains(toId)) ||
+          (fromChar != null &&
+              contra.characterId == fromChar.id &&
+              ids.contains(toId)) ||
+          (toChar != null &&
+              contra.characterId == toChar.id &&
+              ids.contains(fromId))) {
+        return _InferredRelation(
+          relation: BoardRelationType.contradicts,
+          label: 'CONTRADIÇÃO',
+          isSmart: true,
+          deductionText:
+              '⚠ Contradição detectada: ${contra.statement}',
+        );
+      }
+    }
+
+    if (fromClue != null && toClue != null) {
+      final related = fromClue.relatedClueIds.contains(toId) ||
+          toClue.relatedClueIds.contains(fromId);
+      final samePeople = fromClue.relatedCharacterIds
+          .toSet()
+          .intersection(toClue.relatedCharacterIds.toSet())
+          .isNotEmpty;
+      if (related &&
+          fromClue.type == ClueType.location &&
+          toClue.type == ClueType.message) {
+        return _InferredRelation(
+          relation: BoardRelationType.sameTime,
+          label: 'CORROBORA',
+  
