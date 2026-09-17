@@ -389,4 +389,131 @@ class PhotoItem {
 
   const PhotoItem({
     required this.id,
-    required this.tit
+    required this.title,
+    required this.caption,
+    required this.visualDescription,
+    required this.takenAt,
+    this.metadataTakenAt,
+    this.locationName,
+    this.lat,
+    this.lng,
+    this.deviceName,
+    this.deleted = false,
+    this.corrupted = false,
+    this.isScreenshot = false,
+    this.isVideo = false,
+    this.hotspots = const [],
+    this.revealsClueIds = const [],
+    this.colorSeed = 'A0',
+  });
+
+  factory PhotoItem.fromJson(Map<String, dynamic> j) => PhotoItem(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        caption: j['caption'] as String? ?? '',
+        visualDescription: j['visualDescription'] as String? ?? '',
+        takenAt: DateTime.parse(j['takenAt'] as String),
+        metadataTakenAt: j['metadataTakenAt'] != null
+            ? DateTime.parse(j['metadataTakenAt'] as String)
+            : null,
+        locationName: j['locationName'] as String?,
+        lat: (j['lat'] as num?)?.toDouble(),
+        lng: (j['lng'] as num?)?.toDouble(),
+        deviceName: j['deviceName'] as String?,
+        deleted: j['deleted'] as bool? ?? false,
+        corrupted: j['corrupted'] as bool? ?? false,
+        isScreenshot: j['isScreenshot'] as bool? ?? false,
+        isVideo: j['isVideo'] as bool? ?? false,
+        hotspots: _list(j['hotspots'], PhotoHotspot.fromJson),
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        colorSeed: j['colorSeed'] as String? ?? 'A0',
+      );
+}
+
+enum CallType { incoming, outgoing, missed }
+
+class CallLog {
+  final String id;
+  final String contactId;
+  final String displayName;
+  final String? number;
+  final CallType type;
+  final DateTime timestamp;
+  final int durationSeconds;
+  final List<String> revealsClueIds;
+  final bool unknown;
+
+  const CallLog({
+    required this.id,
+    required this.contactId,
+    required this.displayName,
+    this.number,
+    required this.type,
+    required this.timestamp,
+    this.durationSeconds = 0,
+    this.revealsClueIds = const [],
+    this.unknown = false,
+  });
+
+  factory CallLog.fromJson(Map<String, dynamic> j) => CallLog(
+        id: j['id'] as String,
+        contactId: j['contactId'] as String? ?? '',
+        displayName: j['displayName'] as String,
+        number: j['number'] as String?,
+        type: CallType.values.firstWhere(
+          (e) => e.name == j['type'],
+          orElse: () => CallType.incoming,
+        ),
+        timestamp: DateTime.parse(j['timestamp'] as String),
+        durationSeconds: j['durationSeconds'] as int? ?? 0,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        unknown: j['unknown'] as bool? ?? false,
+      );
+}
+
+class EmailItem {
+  final String id;
+  final String from;
+  final List<String> to;
+  final List<String> cc;
+  final List<String> bcc;
+  final String subject;
+  final String body;
+  final DateTime timestamp;
+  final bool isDraft;
+  final bool isTrash;
+  final bool isSpam;
+  final bool isArchived;
+  final List<String> attachments;
+  final List<String> revealsClueIds;
+  final bool locked;
+
+  const EmailItem({
+    required this.id,
+    required this.from,
+    required this.to,
+    this.cc = const [],
+    this.bcc = const [],
+    required this.subject,
+    required this.body,
+    required this.timestamp,
+    this.isDraft = false,
+    this.isTrash = false,
+    this.isSpam = false,
+    this.isArchived = false,
+    this.attachments = const [],
+    this.revealsClueIds = const [],
+    this.locked = false,
+  });
+
+  factory EmailItem.fromJson(Map<String, dynamic> j) => EmailItem(
+        id: j['id'] as String,
+        from: j['from'] as String,
+        to: (j['to'] as List?)?.cast<String>() ?? const [],
+        cc: (j['cc'] as List?)?.cast<String>() ?? const [],
+        bcc: (j['bcc'] as List?)?.cast<String>() ?? const [],
+        subject: j['subject'] as String,
+        body: j['body'] as String,
+        timestamp: DateTime.parse(j['timestamp'] as String),
+        isDraft: j['isDraft'] as bool? ?? false,
+        isTrash
