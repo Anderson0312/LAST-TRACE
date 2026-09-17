@@ -781,4 +781,255 @@ class LiveEvent {
     this.delaySeconds = 0,
   });
 
-  factory LiveEvent.fromJson(Map<String, dynamic> j) => 
+  factory LiveEvent.fromJson(Map<String, dynamic> j) => LiveEvent(
+        id: j['id'] as String,
+        trigger: j['trigger'] as String,
+        condition: Map<String, dynamic>.from(j['condition'] as Map? ?? {}),
+        type: j['type'] as String,
+        payload: Map<String, dynamic>.from(j['payload'] as Map? ?? {}),
+        delaySeconds: j['delaySeconds'] as int? ?? 0,
+      );
+}
+
+class Contradiction {
+  final String id;
+  final String statement;
+  final String characterId;
+  final List<String> evidenceClueIds;
+  final String resolution;
+  final List<String> revealsClueIds;
+
+  const Contradiction({
+    required this.id,
+    required this.statement,
+    required this.characterId,
+    required this.evidenceClueIds,
+    required this.resolution,
+    this.revealsClueIds = const [],
+  });
+
+  factory Contradiction.fromJson(Map<String, dynamic> j) => Contradiction(
+        id: j['id'] as String,
+        statement: j['statement'] as String,
+        characterId: j['characterId'] as String,
+        evidenceClueIds:
+            (j['evidenceClueIds'] as List?)?.cast<String>() ?? const [],
+        resolution: j['resolution'] as String,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class Puzzle {
+  final String id;
+  final String title;
+  final String description;
+  final String answer;
+  final List<String> alternateAnswers;
+  final String narrativeMeaning;
+  final List<String> relatedClueIds;
+  final List<String> unlockOnSolve;
+  final String target; // note | file | app | folder
+
+  const Puzzle({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.answer,
+    this.alternateAnswers = const [],
+    required this.narrativeMeaning,
+    this.relatedClueIds = const [],
+    this.unlockOnSolve = const [],
+    required this.target,
+  });
+
+  factory Puzzle.fromJson(Map<String, dynamic> j) => Puzzle(
+        id: j['id'] as String,
+        title: j['title'] as String,
+        description: j['description'] as String,
+        answer: j['answer'] as String,
+        alternateAnswers:
+            (j['alternateAnswers'] as List?)?.cast<String>() ?? const [],
+        narrativeMeaning: j['narrativeMeaning'] as String? ?? '',
+        relatedClueIds: (j['relatedClueIds'] as List?)?.cast<String>() ?? const [],
+        unlockOnSolve: (j['unlockOnSolve'] as List?)?.cast<String>() ?? const [],
+        target: j['target'] as String? ?? 'file',
+      );
+}
+
+class ContactItem {
+  final String id;
+  final String name;
+  final String? phone;
+  final String? email;
+  final String? notes;
+  final String? company;
+  final bool favorite;
+
+  const ContactItem({
+    required this.id,
+    required this.name,
+    this.phone,
+    this.email,
+    this.notes,
+    this.company,
+    this.favorite = false,
+  });
+
+  factory ContactItem.fromJson(Map<String, dynamic> j) => ContactItem(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        phone: j['phone'] as String?,
+        email: j['email'] as String?,
+        notes: j['notes'] as String?,
+        company: j['company'] as String?,
+        favorite: j['favorite'] as bool? ?? false,
+      );
+}
+
+class CalendarEvent {
+  final String id;
+  final String title;
+  final DateTime start;
+  final DateTime? end;
+  final String? location;
+  final String? notes;
+  final List<String> revealsClueIds;
+
+  const CalendarEvent({
+    required this.id,
+    required this.title,
+    required this.start,
+    this.end,
+    this.location,
+    this.notes,
+    this.revealsClueIds = const [],
+  });
+
+  factory CalendarEvent.fromJson(Map<String, dynamic> j) => CalendarEvent(
+        id: j['id'] as String,
+        title: j['title'] as String,
+        start: DateTime.parse(j['start'] as String),
+        end: j['end'] != null ? DateTime.parse(j['end'] as String) : null,
+        location: j['location'] as String?,
+        notes: j['notes'] as String?,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class NotificationSeed {
+  final String id;
+  final String appId;
+  final String title;
+  final String body;
+  final DateTime? timestamp;
+  final bool sticky;
+  final List<String> revealsClueIds;
+
+  const NotificationSeed({
+    required this.id,
+    required this.appId,
+    required this.title,
+    required this.body,
+    this.timestamp,
+    this.sticky = false,
+    this.revealsClueIds = const [],
+  });
+
+  factory NotificationSeed.fromJson(Map<String, dynamic> j) => NotificationSeed(
+        id: j['id'] as String,
+        appId: j['appId'] as String,
+        title: j['title'] as String,
+        body: j['body'] as String,
+        timestamp: j['timestamp'] != null
+            ? DateTime.parse(j['timestamp'] as String)
+            : null,
+        sticky: j['sticky'] as bool? ?? false,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+/// Progresso persistido do jogador
+class InvestigationProgress {
+  final String caseId;
+  final Set<String> discoveredClues;
+  final Set<String> analyzedClues;
+  final Set<String> openedConversations;
+  final Set<String> openedMessages;
+  final Set<String> unlockedContent;
+  final Set<String> unlockedTimeline;
+  final Set<String> viewedPhotos;
+  final Set<String> solvedPuzzles;
+  final Set<String> markedContradictions;
+  final Set<String> firedLiveEvents;
+  final Set<String> unlockedEndings;
+  final List<BoardConnection> boardConnections;
+  final List<InvestigatorNote> investigatorNotes;
+  final List<BoardTheory> boardTheories;
+  final Map<String, BoardNodeLayout> boardLayouts;
+  final Map<String, int> suspectTrust;
+  final Map<String, int> suspectSuspicion;
+  final double investigationScore;
+  final double clueCompletion;
+  final double timelineCompletion;
+  final double evidenceQuality;
+  final bool deviceUnlocked;
+  final bool remoteAccessDetected;
+  final int batteryPercent;
+  final int playSeconds;
+  final int targetPlaySeconds;
+  final String? accusedCharacterId;
+  final String? chosenEndingId;
+  final DateTime lastSavedAt;
+  final Map<String, dynamic> flags;
+
+  InvestigationProgress({
+    required this.caseId,
+    Set<String>? discoveredClues,
+    Set<String>? analyzedClues,
+    Set<String>? openedConversations,
+    Set<String>? openedMessages,
+    Set<String>? unlockedContent,
+    Set<String>? unlockedTimeline,
+    Set<String>? viewedPhotos,
+    Set<String>? solvedPuzzles,
+    Set<String>? markedContradictions,
+    Set<String>? firedLiveEvents,
+    Set<String>? unlockedEndings,
+    List<BoardConnection>? boardConnections,
+    List<InvestigatorNote>? investigatorNotes,
+    List<BoardTheory>? boardTheories,
+    Map<String, BoardNodeLayout>? boardLayouts,
+    Map<String, int>? suspectTrust,
+    Map<String, int>? suspectSuspicion,
+    this.investigationScore = 0,
+    this.clueCompletion = 0,
+    this.timelineCompletion = 0,
+    this.evidenceQuality = 0,
+    this.deviceUnlocked = false,
+    this.remoteAccessDetected = false,
+    this.batteryPercent = 87,
+    this.playSeconds = 0,
+    this.targetPlaySeconds = 1800,
+    this.accusedCharacterId,
+    this.chosenEndingId,
+    DateTime? lastSavedAt,
+    Map<String, dynamic>? flags,
+  })  : discoveredClues = discoveredClues ?? {},
+        analyzedClues = analyzedClues ?? {},
+        openedConversations = openedConversations ?? {},
+        openedMessages = openedMessages ?? {},
+        unlockedContent = unlockedContent ?? {},
+        unlockedTimeline = unlockedTimeline ?? {},
+        viewedPhotos = viewedPhotos ?? {},
+        solvedPuzzles = solvedPuzzles ?? {},
+        markedContradictions = markedContradictions ?? {},
+        firedLiveEvents = firedLiveEvents ?? {},
+        unlockedEndings = unlockedEndings ?? {},
+        boardConnections = boardConnections ?? [],
+        investigatorNotes = investigatorNotes ?? [],
+        boardTheories = boardTheories ?? [],
+        boardLayouts = boardLayouts ?? {},
+        suspectTrust = suspectTrust ?? {},
+        suspectSuspicion = suspectSuspicion ?? {},
+        lastSavedAt = lastSavedAt ?? DateTime.now(),
+        flags = flags 
