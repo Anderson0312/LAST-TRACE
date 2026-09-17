@@ -776,4 +776,196 @@ class GameEngine extends ChangeNotifier {
       final list = (cond['missingAnyClues'] as List).cast<String>();
       if (list.every(progress.discoveredClues.contains)) return false;
     }
-    
+    // Dispara só se nenhuma das pistas listadas foi encontrada.
+    if (cond['missingAllClues'] is List) {
+      final list = (cond['missingAllClues'] as List).cast<String>();
+      if (list.any(progress.discoveredClues.contains)) return false;
+    }
+    if (cond['appId'] != null && extra?['appId'] != cond['appId']) return false;
+    if (cond['deviceUnlocked'] == true && !progress.deviceUnlocked) return false;
+    if (cond['openedConversation'] != null &&
+        !progress.openedConversations.contains(cond['openedConversation'])) {
+      return false;
+    }
+    if (cond['endingChosen'] == false && progress.chosenEndingId != null) {
+      return false;
+    }
+    return true;
+  }
+
+  void _fireLiveEvent(LiveEvent ev) {
+    switch (ev.type) {
+      case 'notification':
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: ev.payload['appId'] as String? ?? 'system',
+          title: ev.payload['title'] as String? ?? '',
+          body: ev.payload['body'] as String? ?? '',
+          revealsClueIds:
+              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
+        ));
+      case 'message':
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: 'pulse',
+          title: ev.payload['from'] as String? ?? 'Desconhecido',
+          body: ev.payload['body'] as String? ?? '',
+          revealsClueIds:
+              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
+        ));
+      case 'remote':
+        triggerRemoteAccess();
+      case 'island':
+        setIsland(
+          IslandState.values.firstWhere(
+            (e) => e.name == ev.payload['state'],
+            orElse: () => IslandState.notification,
+          ),
+          ev.payload['label'] as String? ?? '',
+        );
+      case 'battery':
+        progress = progress.copyWith(
+          batteryPercent: ev.payload['percent'] as int? ?? progress.batteryPercent,
+        );
+        notifyListeners();
+      default:
+        break;
+    }
+    for (final l in _liveListeners) {
+      l(ev);
+    }
+  }
+
+  Ending? evaluateEnding({String? accusedId}) {
+    final accused = accusedId ?? progress.accusedCharacterId;
+    progress = progress.copyWith(accusedCharacterId: accused);
+
+    Ending? best;
+    int bestRank = -1;
+    for (final ending in c.endings) {
+      final req = ending.requirements;
+      var ok = true;
+      if (req['accuse'] != null && req['accuse'] != accused) ok = false;
+      if (req['minScore'] != null &&
+          progress.investigationScore < (req['minScore'] as num).toDouble()) {
+        ok = false;
+      }
+      if (req['maxScore'] != null &&
+          progress.investigationScore > (req['maxScore'] as num).toDouble()) {
+        ok = false;
+      }
+      if (req['requiredClues'] is List) {
+        final list = (req['requiredClues'] as List).cast<String>();
+        if (!list.every(progress.discoveredClues.contains)) ok = false;
+      }
+      if (req['requiredContradictions'] is List) {
+        final list = (req['requiredContradictions'] as List).cast<String>();
+        if (!list.every(progress.markedContradictions.contains)) ok = false;
+      }
+      if (req['remoteAccess'] == true && !progress.remoteAccessDetected) ok = false;
+      if (!ok) continue;
+      final rank = req['priority'] as int? ?? 0;
+      if (rank > bestRank) {
+        bestRank = rank;
+        best = ending;
+      }
+    }
+
+    // fallback E
+    best ??= c.endings.where((e) => e.code == 'E').firstOrNull ?? c.endings.last;
+    progress.unlockedEndings.add(best.id);
+    progress = progress.copyWith(chosenEndingId: best.id);
+    notifyListeners();
+    return best;
+  }
+
+  // Debug
+  void debugUnlockAll() {
+    if (!debugMode) return;
+    for (final clue in c.clues) {
+      progress.discoveredClues.add(clue.id);
+    }
+    for (final t in c.timeline) {
+      progress.unlockedTimeline.add(t.id);
+    }
+    for (final p in c.puzzles) {
+      progress.solvedPuzzles.add(p.id);
+      progress.unlockedContent.addAll(p.unlockOnSolve);
+    }
+    _recomputeScores();
+    notifyListeners();
+  }
+
+  void debugReset() {
+    if (!debugMode || caseData == null) return;
+    loadCase(caseData!);
+  }
+
+  @override
+  void dispose() {
+    stopLiveLoop();
+    super.dispose();
+  }
+}
+
+class BoardConnectionResult {
+  final BoardConnection connection;
+  final String? deductionText;
+  final bool isContradiction;
+
+  const BoardConnectionResult({
+    required this.connection,
+    this.deductionText,
+    this.isContradiction = false,
+  });
+}
+
+class BoardProgressSnapshot {
+  final double percent;
+  final int foundClues;
+  final int totalClues;
+  final int smartConnections;
+  final int targetConnections;
+  final int investigatedSuspects;
+  final int totalSuspects;
+
+  const BoardProgressSnapshot({
+    required this.percent,
+    required this.foundClues,
+    required this.totalClues,
+    required this.smartConnections,
+    required this.targetConnections,
+    required this.investigatedSuspects,
+    required this.totalSuspects,
+  });
+}
+
+class _InferredRelation {
+  final BoardRelationType relation;
+  final String label;
+  final bool isSmart;
+  final String? deductionText;
+
+  const _InferredRelation({
+    required this.relation,
+    required this.label,
+    this.isSmart = false,
+    this.deductionText,
+  });
+}
+
+enum IslandState {
+  idle,
+  call,
+  music,
+  voiceRecording,
+  timer,
+  notification,
+  navigation,
+  unknownActivity,
+  lowBattery,
+}
+
+extension FirstOrNullExt<E> on Iterable<E> {
+  E? get firstOrNull => isEmpty ? null : first;
+}
