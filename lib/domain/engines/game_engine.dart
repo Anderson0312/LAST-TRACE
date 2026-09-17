@@ -209,14 +209,40 @@ class GameEngine extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addBoardConnection(String fromId, String toId, {String? label}) {
-    progress.boardConnections.add(BoardConnection(
+  /// Resultado de uma conexão (smart deduction / contradição).
+  BoardConnectionResult addBoardConnection(
+    String fromId,
+    String toId, {
+    String? label,
+    BoardRelationType? relation,
+  }) {
+    final inferred = _inferRelation(fromId, toId);
+    final conn = BoardConnection(
       id: _uuid.v4(),
       fromId: fromId,
       toId: toId,
-      label: label,
-    ));
+      label: label ?? inferred.label,
+      relation: relation ?? inferred.relation,
+      isSmart: inferred.isSmart,
+      deductionText: inferred.deductionText,
+    );
+    progress.boardConnections.add(conn);
+
+    // Auto-marcar contradições quando as evidências forem ligadas.
+    for (final contra in c.contradictions) {
+      if (progress.markedContradictions.contains(contra.id)) continue;
+      final ids = contra.evidenceClueIds.toSet();
+      if (ids.contains(fromId) && ids.contains(toId)) {
+        markContradiction(contra.id);
+      }
+    }
+
     notifyListeners();
+    return BoardConnectionResult(
+      connection: conn,
+      deductionText: inferred.deductionText,
+      isContradiction: inferred.relation == BoardRelationType.contradicts,
+    );
   }
 
   void removeBoardConnection(String id) {
@@ -224,468 +250,262 @@ class GameEngine extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addInvestigatorNote(String text, NoteTag tag) {
+  void setBoardNodeLayout(String nodeId, BoardNodeLayout layout) {
+    progress.boardLayouts[nodeId] = layout;
+    notifyListeners();
+  }
+
+  void moveBoardNode(String nodeId, double x, double y) {
+    final prev = progress.boardLayouts[nodeId];
+    progress.boardLayouts[nodeId] = (prev ?? const BoardNodeLayout(x: 0, y: 0))
+        .copyWith(x: x, y: y, pinnedToBoard: true);
+    notifyListeners();
+  }
+
+  BoardNodeLayout ensureBoardLayout(String nodeId, {int seed = 0}) {
+    final existing = progress.boardLayouts[nodeId];
+    if (existing != null) return existing;
+    final layout = _defaultLayoutFor(nodeId, seed);
+    progress.boardLayouts[nodeId] = layout;
+    return layout;
+  }
+
+  BoardNodeLayout _defaultLayoutFor(String nodeId, int seed) {
+    final h = nodeId.hashCode.abs() + seed * 17;
+    final col = h % 5;
+    final row = (h ~/ 5) % 6;
+    final rot = ((h % 11) - 5) * 0.012;
+    return BoardNodeLayout(
+      x: 180 + col * 220.0 + (h % 30).toDouble(),
+      y: 160 + row * 200.0 + ((h ~/ 3) % 40).toDouble(),
+      rotation: rot,
+    );
+  }
+
+  void addInvestigatorNote(
+    String text,
+    NoteTag tag, {
+    double? boardX,
+    double? boardY,
+  }) {
+    final idx = progress.investigatorNotes.length;
     progress.investigatorNotes.insert(
       0,
-      InvestigatorNote(id: _uuid.v4(), text: text, tag: tag),
+      InvestigatorNote(
+        id: _uuid.v4(),
+        text: text,
+        tag: tag,
+        boardX: boardX ?? (320 + (idx % 4) * 40.0),
+        boardY: boardY ?? (520 + (idx % 3) * 50.0),
+        colorStyle: idx % 4,
+        rotation: -0.05 + (idx % 5) * 0.02,
+      ),
     );
     notifyListeners();
   }
 
-  void pushNotification(PhoneNotification n) {
-    notifications.insert(0, n);
-    revealFromContent(n.revealsClueIds);
-    islandState = IslandState.notification;
-    islandLabel = n.title;
-    notifyListeners();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (islandState == IslandState.notification) {
-        islandState = IslandState.idle;
-        islandLabel = '';
-        notifyListeners();
-      }
-    });
-  }
-
-  void setIsland(IslandState state, String label) {
-    islandState = state;
-    islandLabel = label;
+  void updateInvestigatorNote(InvestigatorNote note) {
+    final i = progress.investigatorNotes.indexWhere((e) => e.id == note.id);
+    if (i < 0) return;
+    progress.investigatorNotes[i] = note;
     notifyListeners();
   }
 
-  void setFlag(String key, dynamic value) {
-    progress.flags[key] = value;
+  void removeInvestigatorNote(String id) {
+    progress.investigatorNotes.removeWhere((e) => e.id == id);
     notifyListeners();
   }
 
-  bool getFlag(String key) => progress.flags[key] == true;
-
-  void triggerRemoteAccess() {
-    if (progress.remoteAccessDetected) return;
-    progress = progress.copyWith(
-      remoteAccessDetected: true,
-      batteryPercent: (progress.batteryPercent - 6).clamp(1, 100),
-    );
-    progress.flags['unknown_device'] = true;
-    discoverClue('CLUE_REMOTE_ACCESS');
-    pushNotification(PhoneNotification(
+  void addBoardTheory({
+    required String title,
+    required String body,
+    List<String> evidenceIds = const [],
+  }) {
+    final n = progress.boardTheories.length + 1;
+    progress.boardTheories.add(BoardTheory(
       id: _uuid.v4(),
-      appId: 'settings',
-      title: 'OSIS Segurança',
-      body: 'Acesso remoto detectado',
-      revealsClueIds: const ['CLUE_REMOTE_ACCESS'],
+      title: title.isEmpty ? 'Teoria #$n' : title,
+      body: body,
+      evidenceIds: evidenceIds,
+      boardX: 700 + (n % 3) * 40.0,
+      boardY: 280 + (n % 4) * 60.0,
     ));
-    setIsland(IslandState.unknownActivity, 'atividade desconhecida');
+    notifyListeners();
   }
 
-  void _applyUnlockRules() {
-    for (final rule in c.unlockRules) {
-      final have = rule.requiredClueIds.where(progress.discoveredClues.contains).length;
-      final need = rule.minRequired > 0 ? rule.minRequired : rule.requiredClueIds.length;
-      if (have < need) continue;
-      for (final id in rule.unlockClueIds) {
-        progress.discoveredClues.add(id);
-      }
-      for (final id in rule.unlockTimelineIds) {
-        progress.unlockedTimeline.add(id);
-      }
-      for (final id in rule.unlockContentIds) {
-        progress.unlockedContent.add(id);
-      }
-      if (rule.notificationText != null &&
-          !progress.flags.containsKey('rule_notif_${rule.id}')) {
-        progress.flags['rule_notif_${rule.id}'] = true;
-        pushNotification(PhoneNotification(
-          id: _uuid.v4(),
-          appId: 'system',
-          title: 'Arquivo recuperado',
-          body: rule.notificationText!,
-        ));
+  void updateBoardTheory(BoardTheory theory) {
+    final i = progress.boardTheories.indexWhere((e) => e.id == theory.id);
+    if (i < 0) return;
+    progress.boardTheories[i] = theory;
+    notifyListeners();
+  }
+
+  void removeBoardTheory(String id) {
+    progress.boardTheories.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  _InferredRelation _inferRelation(String fromId, String toId) {
+    final fromClue = c.clues.where((e) => e.id == fromId).firstOrNull;
+    final toClue = c.clues.where((e) => e.id == toId).firstOrNull;
+    final fromChar = c.characters.where((e) => e.id == fromId).firstOrNull;
+    final toChar = c.characters.where((e) => e.id == toId).firstOrNull;
+
+    // Contradição narrativa
+    for (final contra in c.contradictions) {
+      final ids = contra.evidenceClueIds.toSet();
+      if ((ids.contains(fromId) && ids.contains(toId)) ||
+          (fromChar != null &&
+              contra.characterId == fromChar.id &&
+              ids.contains(toId)) ||
+          (toChar != null &&
+              contra.characterId == toChar.id &&
+              ids.contains(fromId))) {
+        return _InferredRelation(
+          relation: BoardRelationType.contradicts,
+          label: 'CONTRADIÇÃO',
+          isSmart: true,
+          deductionText:
+              '⚠ Contradição detectada: ${contra.statement}',
+        );
       }
     }
-  }
 
-  void _recomputeScores() {
-    final totalClues = c.clues.where((e) => !e.isRedHerring).length;
-    final found = c.clues
-        .where((e) => !e.isRedHerring && progress.discoveredClues.contains(e.id))
-        .length;
-    final cluePct = totalClues == 0 ? 0.0 : found / totalClues;
+    if (fromClue != null && toClue != null) {
+      final related = fromClue.relatedClueIds.contains(toId) ||
+          toClue.relatedClueIds.contains(fromId);
+      final samePeople = fromClue.relatedCharacterIds
+          .toSet()
+          .intersection(toClue.relatedCharacterIds.toSet())
+          .isNotEmpty;
+      if (related &&
+          fromClue.type == ClueType.location &&
+          toClue.type == ClueType.message) {
+        return _InferredRelation(
+          relation: BoardRelationType.sameTime,
+          label: 'CORROBORA',
+          isSmart: true,
+          deductionText:
+              'Nova dedução: ${fromClue.name} e ${toClue.name} se reforçam no mesmo intervalo.',
+        );
+      }
+      if (related) {
+        return _InferredRelation(
+          relation: BoardRelationType.confirms,
+          label: 'CORROBORA',
+          isSmart: true,
+          deductionText:
+              'Nova dedução desbloqueada entre ${fromClue.name} e ${toClue.name}.',
+        );
+      }
+      if (samePeople) {
+        return _InferredRelation(
+          relation: BoardRelationType.related,
+          label: 'RELACIONADO',
+          isSmart: false,
+        );
+      }
+    }
 
-    final totalTl = c.timeline.length;
-    final foundTl = c.timeline.where(isTimelineVisible).length;
-    final tlPct = totalTl == 0 ? 0.0 : foundTl / totalTl;
+    if (fromChar != null && toClue != null) {
+      if (toClue.relatedCharacterIds.contains(fromChar.id)) {
+        final rel = fromChar.role == CharacterRole.suspect
+            ? BoardRelationType.motive
+            : BoardRelationType.related;
+        return _InferredRelation(
+          relation: rel,
+          label: fromChar.role == CharacterRole.suspect ? 'SUSPEITO' : 'LIGAÇÃO',
+          isSmart: true,
+          deductionText:
+              '${fromChar.name} está ligado(a) a ${toClue.name}.',
+        );
+      }
+    }
+    if (toChar != null && fromClue != null) {
+      if (fromClue.relatedCharacterIds.contains(toChar.id)) {
+        return _InferredRelation(
+          relation: BoardRelationType.related,
+          label: 'LIGAÇÃO',
+          isSmart: true,
+          deductionText:
+              '${toChar.name} está ligado(a) a ${fromClue.name}.',
+        );
+      }
+    }
 
-    final critical = c.clues.where((e) => e.importance == ClueImportance.critical);
-    final critFound =
-        critical.where((e) => progress.discoveredClues.contains(e.id)).length;
-    final evidence = critical.isEmpty ? 0.0 : critFound / critical.length;
-
-    final contraPct = c.contradictions.isEmpty
-        ? 0.0
-        : progress.markedContradictions.length / c.contradictions.length;
-
-    final score = (cluePct * 40) + (tlPct * 25) + (evidence * 25) + (contraPct * 10);
-
-    progress = progress.copyWith(
-      clueCompletion: cluePct,
-      timelineCompletion: tlPct,
-      evidenceQuality: evidence,
-      investigationScore: score,
+    return const _InferredRelation(
+      relation: BoardRelationType.related,
+      label: 'HIPÓTESE',
+      isSmart: false,
     );
   }
 
-  void setReduceMotion(bool v) {
-    reduceMotion = v;
-    notifyListeners();
+  BoardProgressSnapshot boardProgressSnapshot() {
+    final totalClues = c.clues.length;
+    final found = progress.discoveredClues.length;
+    final smart = progress.boardConnections.where((e) => e.isSmart).length;
+    final suspects = c.characters
+        .where((e) => e.role == CharacterRole.suspect)
+        .toList();
+    final investigated = suspects.where((s) {
+      return progress.boardConnections.any(
+            (c) => c.fromId == s.id || c.toId == s.id,
+          ) ||
+          c.clues.any((cl) =>
+              progress.discoveredClues.contains(cl.id) &&
+              cl.relatedCharacterIds.contains(s.id));
+    }).length;
+    final targetConnections = math.max(6, (totalClues * 0.35).round());
+    final pct = (
+          (found / math.max(1, totalClues)) * 0.55 +
+          (smart / math.max(1, targetConnections)) * 0.30 +
+          (investigated / math.max(1, suspects.length)) * 0.15
+        )
+        .clamp(0.0, 1.0);
+    return BoardProgressSnapshot(
+      foundClues: found,
+      totalClues: totalClues,
+      smartConnections: smart,
+      targetConnections: targetConnections,
+      investigatedSuspects: investigated,
+      totalSuspects: suspects.length,
+      percent: pct,
+    );
   }
 
-  void setHaptics(bool v) {
-    hapticsEnabled = v;
-    notifyListeners();
+  void registerActivity(String kind) {
+    progress = progress.copyWith(
+      activityLog: [...progress.activityLog, kind],
+      playSeconds: progress.playSeconds + 1,
+    );
+    _tickBatteryFromActivity(kind);
+    _checkLiveEvents(trigger: 'activity', extra: {'kind': kind});
   }
 
-  void setFontScale(double v) {
-    fontScale = v;
-    notifyListeners();
-  }
-
-  void startLiveLoop() {
-    _liveTimer?.cancel();
-    _liveTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (progress.deviceUnlocked && progress.chosenEndingId == null) {
-        progress = progress.copyWith(
-          playSeconds: progress.playSeconds + 4,
-        );
-        _syncDyingBattery();
-      }
-      _checkLiveEvents(trigger: 'time');
-      _checkLiveEvents(trigger: 'progress');
-      notifyListeners();
-    });
-  }
-
-  void stopLiveLoop() {
-    _liveTimer?.cancel();
-  }
-
-  /// Contagem restante (uso interno / Quadro).
-  String get remainingClockLabel {
-    final s = progress.remainingSeconds;
-    final m = (s ~/ 60).toString().padLeft(2, '0');
-    final r = (s % 60).toString().padLeft(2, '0');
-    return '$m:$r';
-  }
-
-  /// Nível narrativo da bateria (cai ao longo dos 30 min).
-  int get narrativeBatteryLevel => progress.batteryPercent;
-
-  /// Dica contextual com base no que ainda falta descobrir.
-  String? get suggestedNextHint {
-    if (!progress.deviceUnlocked || caseData == null) return null;
-    if (progress.chosenEndingId != null) return null;
-    final d = progress.discoveredClues;
-    bool miss(String id) => !d.contains(id);
-
-    if (miss('CLUE_LAST_MSG') ||
-        miss('CLUE_RAFAEL_WHERE') ||
-        miss('CLUE_MSG_DELETED')) {
-      return 'Abra o WhatsApp e leia as conversas recentes — especialmente Rafael e R.';
-    }
-    if (miss('CLUE_PARKING') || miss('CLUE_LOC_OFF') || miss('CLUE_LOC_RESTAURANT')) {
-      return 'Confira Mapas e Ajustes → Localização. O aparelho foi achado no São Lucas.';
-    }
-    if (miss('CLUE_CALL_UNKNOWN') ||
-        miss('CLUE_CALL_DANIEL') ||
-        miss('CLUE_VOICEMAIL')) {
-      return 'Abra Chamadas: há uma linha desconhecida e um correio de voz.';
-    }
-    if (miss('CLUE_NOTE_IF') || miss('CLUE_NOTE_R') || miss('CLUE_R_THREAD')) {
-      return 'Notas e Contatos: procure "R." e a anotação "se alguma coisa acontecer".';
-    }
-    if (miss('CLUE_EMAIL_DANIEL') ||
-        miss('CLUE_FILE_AURORA') ||
-        miss('CLUE_CONTRACT_AURORA')) {
-      return 'Mail e Arquivos: procure Aurora, contratos e e-mails do Daniel.';
-    }
-    if (miss('CLUE_PHOTO_PLATE') ||
-        miss('CLUE_PHOTO_REFLECTION') ||
-        miss('CLUE_META_MISMATCH')) {
-      return 'Galeria: toque nas fotos e explore os pontos quentes (placa, reflexo, metadados).';
-    }
-    if (miss('CLUE_REMOTE_ACCESS') || miss('CLUE_FILE_DAT')) {
-      return 'Ajustes / Arquivos: arquivo_00017.dat e sinais de acesso remoto.';
-    }
-    if (progress.investigationScore < 55) {
-      return 'Monte o Quadro: ligue pistas, marque contradições e depois vá em Conclusão.';
-    }
-    return 'Você já tem material. Abra Quadro → Conclusão e escolha quem acusar.';
-  }
-
-  /// Drena a bateria conforme o tempo de jogo — sem cronômetro na Island.
-  void _syncDyingBattery() {
-    if (!progress.deviceUnlocked || progress.chosenEndingId != null) return;
-
-    final start = (caseData?.osState['battery'] as int?) ?? 87;
-    final t = progress.timePressure.clamp(0.0, 1.0);
-    // Queda lenta no começo, acelerada no final (celular “morrendo”).
-    final drain = math.pow(t, 1.35).toDouble();
-    var level = (start * (1.0 - drain)).round();
-    if (progress.remoteAccessDetected) {
-      level -= 8;
-    }
-    if (t >= 0.92) {
-      level = math.min(level, 4);
-    } else if (t >= 0.78) {
-      level = math.min(level, 12);
-    } else if (t >= 0.55) {
-      level = math.min(level, 28);
-    }
-    level = level.clamp(1, 100);
-
+  void _tickBatteryFromActivity(String kind) {
+    final drain = switch (kind) {
+      'open_app' => 1,
+      'clue' => 0,
+      'solve' => 1,
+      _ => 0,
+    };
+    if (drain <= 0) return;
     final previous = progress.batteryPercent;
-    progress = progress.copyWith(batteryPercent: level);
-    _maybeWarnLowBattery(previous, level);
+    final next = (previous - drain).clamp(0, 100);
+    if (next == previous) return;
+    progress = progress.copyWith(batteryPercent: next);
+    _maybeWarnLowBattery(previous, next);
   }
 
-  void _maybeWarnLowBattery(int previous, int now) {
-    void cross(int threshold, String flag, String label) {
-      if (now > threshold || previous <= threshold) return;
-      if (progress.flags[flag] == true) return;
-      progress.flags[flag] = true;
+  String describeActivity(String kind) => switch (kind) {
+        'open_app' => 'abriu um aplicativo',
+        'clue' => 'encontrou uma pista',
+        'solve' => 'resolveu um enigma',
+        _ => kind.isEmpty ? 'atividade desconhecida' : kind,
+      };
 
-      if (islandState == IslandState.idle ||
-          islandState == IslandState.lowBattery) {
-        islandState = IslandState.lowBattery;
-        islandLabel = label;
-        Future.delayed(const Duration(seconds: 4), () {
-          if (islandState == IslandState.lowBattery) {
-            islandState = IslandState.idle;
-            islandLabel = '';
-            notifyListeners();
-          }
-        });
-      }
-
-      if (threshold <= 20) {
-        notifications.insert(
-          0,
-          PhoneNotification(
-            id: _uuid.v4(),
-            appId: 'settings',
-            title: threshold <= 5 ? 'Bateria crítica' : 'Bateria fraca',
-            body: threshold <= 5
-                ? 'O aparelho pode desligar a qualquer momento. Conclua a investigação.'
-                : 'Restam $now%. Priorize pistas e abra o Quadro → Conclusão.',
-          ),
-        );
-      }
-    }
-
-    cross(35, 'bat_warn_35', 'bateria 35%');
-    cross(20, 'bat_warn_20', 'bateria fraca');
-    cross(10, 'bat_warn_10', 'bateria crítica');
-    cross(5, 'bat_warn_5', 'desligando…');
+  String lastActivityLabel() {
+    if (progress.activityLog.isEmpty) return 'nenhuma atividade';
+    return describeActivity(progress.activityLog.last);
   }
 
-  void _checkLiveEvents({required String trigger, Map<String, dynamic>? extra}) {
-    if (caseData == null) return;
-    for (final ev in c.liveEvents.where((e) => e.trigger == trigger)) {
-      if (progress.firedLiveEvents.contains(ev.id)) continue;
-      if (!_matchesCondition(ev.condition, extra)) continue;
-      progress.firedLiveEvents.add(ev.id);
-      Future.delayed(Duration(seconds: ev.delaySeconds), () {
-        _fireLiveEvent(ev);
-      });
-    }
-  }
-
-  bool _matchesCondition(Map<String, dynamic> cond, Map<String, dynamic>? extra) {
-    if (cond['minScore'] != null &&
-        progress.investigationScore < (cond['minScore'] as num).toDouble()) {
-      return false;
-    }
-    if (cond['maxScore'] != null &&
-        progress.investigationScore > (cond['maxScore'] as num).toDouble()) {
-      return false;
-    }
-    if (cond['minElapsedSeconds'] != null &&
-        progress.playSeconds < (cond['minElapsedSeconds'] as num).toInt()) {
-      return false;
-    }
-    if (cond['maxElapsedSeconds'] != null &&
-        progress.playSeconds > (cond['maxElapsedSeconds'] as num).toInt()) {
-      return false;
-    }
-    if (cond['minClueCount'] != null &&
-        progress.discoveredClues.length < (cond['minClueCount'] as num).toInt()) {
-      return false;
-    }
-    if (cond['maxClueCount'] != null &&
-        progress.discoveredClues.length > (cond['maxClueCount'] as num).toInt()) {
-      return false;
-    }
-    if (cond['clueId'] != null &&
-        !progress.discoveredClues.contains(cond['clueId'])) {
-      return false;
-    }
-    if (cond['anyClues'] is List) {
-      final list = (cond['anyClues'] as List).cast<String>();
-      if (!list.any(progress.discoveredClues.contains)) return false;
-    }
-    if (cond['allClues'] is List) {
-      final list = (cond['allClues'] as List).cast<String>();
-      if (!list.every(progress.discoveredClues.contains)) return false;
-    }
-    // Dispara enquanto o jogador ainda não achou pelo menos uma destas pistas.
-    if (cond['missingAnyClues'] is List) {
-      final list = (cond['missingAnyClues'] as List).cast<String>();
-      if (list.every(progress.discoveredClues.contains)) return false;
-    }
-    // Dispara só se nenhuma das pistas listadas foi encontrada.
-    if (cond['missingAllClues'] is List) {
-      final list = (cond['missingAllClues'] as List).cast<String>();
-      if (list.any(progress.discoveredClues.contains)) return false;
-    }
-    if (cond['appId'] != null && extra?['appId'] != cond['appId']) return false;
-    if (cond['deviceUnlocked'] == true && !progress.deviceUnlocked) return false;
-    if (cond['openedConversation'] != null &&
-        !progress.openedConversations.contains(cond['openedConversation'])) {
-      return false;
-    }
-    if (cond['endingChosen'] == false && progress.chosenEndingId != null) {
-      return false;
-    }
-    return true;
-  }
-
-  void _fireLiveEvent(LiveEvent ev) {
-    switch (ev.type) {
-      case 'notification':
-        pushNotification(PhoneNotification(
-          id: _uuid.v4(),
-          appId: ev.payload['appId'] as String? ?? 'system',
-          title: ev.payload['title'] as String? ?? '',
-          body: ev.payload['body'] as String? ?? '',
-          revealsClueIds:
-              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
-        ));
-      case 'message':
-        pushNotification(PhoneNotification(
-          id: _uuid.v4(),
-          appId: 'pulse',
-          title: ev.payload['from'] as String? ?? 'Desconhecido',
-          body: ev.payload['body'] as String? ?? '',
-          revealsClueIds:
-              ((ev.payload['revealsClueIds'] as List?) ?? const []).cast<String>(),
-        ));
-      case 'remote':
-        triggerRemoteAccess();
-      case 'island':
-        setIsland(
-          IslandState.values.firstWhere(
-            (e) => e.name == ev.payload['state'],
-            orElse: () => IslandState.notification,
-          ),
-          ev.payload['label'] as String? ?? '',
-        );
-      case 'battery':
-        progress = progress.copyWith(
-          batteryPercent: ev.payload['percent'] as int? ?? progress.batteryPercent,
-        );
-        notifyListeners();
-      default:
-        break;
-    }
-    for (final l in _liveListeners) {
-      l(ev);
-    }
-  }
-
-  Ending? evaluateEnding({String? accusedId}) {
-    final accused = accusedId ?? progress.accusedCharacterId;
-    progress = progress.copyWith(accusedCharacterId: accused);
-
-    Ending? best;
-    int bestRank = -1;
-    for (final ending in c.endings) {
-      final req = ending.requirements;
-      var ok = true;
-      if (req['accuse'] != null && req['accuse'] != accused) ok = false;
-      if (req['minScore'] != null &&
-          progress.investigationScore < (req['minScore'] as num).toDouble()) {
-        ok = false;
-      }
-      if (req['maxScore'] != null &&
-          progress.investigationScore > (req['maxScore'] as num).toDouble()) {
-        ok = false;
-      }
-      if (req['requiredClues'] is List) {
-        final list = (req['requiredClues'] as List).cast<String>();
-        if (!list.every(progress.discoveredClues.contains)) ok = false;
-      }
-      if (req['requiredContradictions'] is List) {
-        final list = (req['requiredContradictions'] as List).cast<String>();
-        if (!list.every(progress.markedContradictions.contains)) ok = false;
-      }
-      if (req['remoteAccess'] == true && !progress.remoteAccessDetected) ok = false;
-      if (!ok) continue;
-      final rank = req['priority'] as int? ?? 0;
-      if (rank > bestRank) {
-        bestRank = rank;
-        best = ending;
-      }
-    }
-
-    // fallback E
-    best ??= c.endings.where((e) => e.code == 'E').firstOrNull ?? c.endings.last;
-    progress.unlockedEndings.add(best.id);
-    progress = progress.copyWith(chosenEndingId: best.id);
-    notifyListeners();
-    return best;
-  }
-
-  // Debug
-  void debugUnlockAll() {
-    if (!debugMode) return;
-    for (final clue in c.clues) {
-      progress.discoveredClues.add(clue.id);
-    }
-    for (final t in c.timeline) {
-      progress.unlockedTimeline.add(t.id);
-    }
-    for (final p in c.puzzles) {
-      progress.solvedPuzzles.add(p.id);
-      progress.unlockedContent.addAll(p.unlockOnSolve);
-    }
-    _recomputeScores();
-    notifyListeners();
-  }
-
-  void debugReset() {
-    if (!debugMode || caseData == null) return;
-    loadCase(caseData!);
-  }
-
-  @override
-  void dispose() {
-    stopLiveLoop();
-    super.dispose();
-  }
-}
-
-enum IslandState {
-  idle,
-  call,
-  music,
-  voiceRecording,
-  timer,
-  notification,
-  navigation,
-  unknownActivity,
-  lowBattery,
-}
-
-extension FirstOrNullExt<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
-}
