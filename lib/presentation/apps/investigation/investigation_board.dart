@@ -354,3 +354,237 @@ class _InvestigationBoardState extends State<InvestigationBoard>
     );
   }
 
+  Widget _timelineStrip(GameEngine engine) {
+    final fmt = MaterialLocalizations.of(context);
+    final events = engine.c.timeline.where(engine.isTimelineVisible).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return Material(
+      color: const Color(0xEE141018),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Row(
+              children: [
+                const Text(
+                  'TIMELINE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                    color: Colors.white70,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () => setState(() => _showTimeline = false),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: events.length,
+              itemBuilder: (_, i) {
+                final e = events[i];
+                return Container(
+                  width: 160,
+                  margin: const EdgeInsets.only(right: 10, bottom: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${e.timestamp.hour.toString().padLeft(2, '0')}:'
+                        '${e.timestamp.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          color: OsisTheme.accent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        e.description,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11, height: 1.25),
+                      ),
+                      const Spacer(),
+                      Text(
+                        e.location ?? e.source,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 9,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          // silence unused
+          Offstage(child: Text(fmt.formatTimeOfDay(TimeOfDay.now()))),
+        ],
+      ),
+    );
+  }
+
+  Widget _draggableNode(
+    GameEngine engine,
+    CoopEngine? coop,
+    _BoardNode node,
+  ) {
+    return GestureDetector(
+      onPanUpdate: (d) {
+        if (_connectFrom != null) {
+          setState(() {
+            _draftCursor = Offset(
+              node.layout.x + d.localPosition.dx,
+              node.layout.y + d.localPosition.dy,
+            );
+          });
+          return;
+        }
+        final scale = _transform.value.getMaxScaleOnAxis();
+        engine.moveBoardNode(
+          node.id,
+          (node.layout.x + d.delta.dx / scale)
+              .clamp(20.0, boardW - cardW - 20),
+          (node.layout.y + d.delta.dy / scale)
+              .clamp(20.0, boardH - cardH - 20),
+        );
+      },
+      onPanEnd: (_) {
+        if (_connectFrom != null && _draftCursor != null) {
+          _tryDropConnect(engine, node);
+        }
+        autosave(context);
+      },
+      child: _cardFor(engine, coop, node),
+    );
+  }
+
+  void _tryDropConnect(GameEngine engine, _BoardNode fromNode) {
+    // Conexão por pan: precisa de segundo nó próximo ao cursor — simplificado:
+    // usa modo tap-to-connect.
+    setState(() => _draftCursor = null);
+  }
+
+  Widget _cardFor(GameEngine engine, CoopEngine? coop, _BoardNode node) {
+    final selected = _selectedId == node.id || _connectFrom == node.id;
+    final badge = node.ownerBadge;
+
+    Widget card;
+    switch (node.kind) {
+      case _NodeKind.person:
+        card = PersonBoardCard(
+          character: node.character!,
+          ownerBadge: badge,
+          onTap: () => _onTapNode(engine, node),
+          onLongPress: () => _startConnect(node.id),
+          onConnect: () => _startConnect(node.id),
+        );
+      case _NodeKind.clue:
+        card = ClueBoardCard(
+          clue: node.clue!,
+          ownerBadge: badge,
+          onTap: () => _onTapNode(engine, node),
+          onLongPress: () => _startConnect(node.id),
+          onConnect: () => _startConnect(node.id),
+        );
+      case _NodeKind.note:
+        card = NoteBoardCard(
+          note: node.note!,
+          onTap: () => _onTapNode(engine, node),
+          onLongPress: () => _startConnect(node.id),
+          onConnect: () => _startConnect(node.id),
+        );
+      case _NodeKind.theory:
+        card = TheoryBoardCard(
+          theory: node.theory!,
+          onTap: () => _onTapNode(engine, node),
+          onLongPress: () => _startConnect(node.id),
+          onConnect: () => _startConnect(node.id),
+        );
+    }
+
+    return AnimatedScale(
+      scale: selected ? 1.04 : 1.0,
+      duration: const Duration(milliseconds: 160),
+      child: card,
+    );
+  }
+
+  void _startConnect(String id) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_connectFrom == null) {
+        _connectFrom = id;
+        _draftCursor = null;
+      } else if (_connectFrom == id) {
+        _connectFrom = null;
+      } else {
+        _finishConnect(id);
+      }
+    });
+  }
+
+  Future<void> _finishConnect(String toId) async {
+    final from = _connectFrom!;
+    final engine = context.read<GameEngine>();
+    final result = engine.addBoardConnection(from, toId);
+    setState(() {
+      _connectFrom = null;
+      _draftCursor = null;
+      _freshConnectionId = result.connection.id;
+    });
+    HapticFeedback.mediumImpact();
+    await autosave(context);
+    if (!mounted) return;
+    if (result.deductionText != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: result.isContradiction
+              ? const Color(0xFF4A1A12)
+              : BoardTheme.corkGrain,
+          content: Text(result.deductionText!),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pistas conectadas'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _freshConnectionId = null);
+    });
+  }
+
+  void _onTapNode(GameEngine engine, _BoardNode node) {
+    if (_connectFrom != null) {
+      if (_connectFrom != node.id) {
+        _finishConnect(node.id);
+      }
+      return;
+    }
+    setState(() => _selectedId = node.id);
+    _openDetail(engine, node);
+  }
+
