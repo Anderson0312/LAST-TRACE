@@ -516,4 +516,269 @@ class EmailItem {
         body: j['body'] as String,
         timestamp: DateTime.parse(j['timestamp'] as String),
         isDraft: j['isDraft'] as bool? ?? false,
-        isTrash
+        isTrash: j['isTrash'] as bool? ?? false,
+        isSpam: j['isSpam'] as bool? ?? false,
+        isArchived: j['isArchived'] as bool? ?? false,
+        attachments: (j['attachments'] as List?)?.cast<String>() ?? const [],
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        locked: j['locked'] as bool? ?? false,
+      );
+}
+
+class NoteItem {
+  final String id;
+  final String title;
+  final String body;
+  final DateTime updatedAt;
+  final bool locked;
+  final String? passwordHint;
+  final List<String> revealsClueIds;
+  final bool encrypted;
+
+  const NoteItem({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.updatedAt,
+    this.locked = false,
+    this.passwordHint,
+    this.revealsClueIds = const [],
+    this.encrypted = false,
+  });
+
+  factory NoteItem.fromJson(Map<String, dynamic> j) => NoteItem(
+        id: j['id'] as String,
+        title: j['title'] as String,
+        body: j['body'] as String,
+        updatedAt: DateTime.parse(j['updatedAt'] as String),
+        locked: j['locked'] as bool? ?? false,
+        passwordHint: j['passwordHint'] as String?,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        encrypted: j['encrypted'] as bool? ?? false,
+      );
+}
+
+class FileItem {
+  final String id;
+  final String name;
+  final String type;
+  final String path;
+  final String? content;
+  final bool corrupted;
+  final bool passwordProtected;
+  final String? password;
+  final bool hidden;
+  final DateTime modifiedAt;
+  final List<String> revealsClueIds;
+
+  const FileItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.path,
+    this.content,
+    this.corrupted = false,
+    this.passwordProtected = false,
+    this.password,
+    this.hidden = false,
+    required this.modifiedAt,
+    this.revealsClueIds = const [],
+  });
+
+  factory FileItem.fromJson(Map<String, dynamic> j) => FileItem(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        type: j['type'] as String? ?? 'txt',
+        path: j['path'] as String? ?? '/',
+        content: j['content'] as String?,
+        corrupted: j['corrupted'] as bool? ?? false,
+        passwordProtected: j['passwordProtected'] as bool? ?? false,
+        password: j['password'] as String?,
+        hidden: j['hidden'] as bool? ?? false,
+        modifiedAt: DateTime.parse(j['modifiedAt'] as String),
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class MapLocation {
+  final String id;
+  final String name;
+  final String kind; // favorite, recent, searched, shared, history
+  final double lat;
+  final double lng;
+  final DateTime? visitedAt;
+  final String? note;
+  final List<String> revealsClueIds;
+
+  const MapLocation({
+    required this.id,
+    required this.name,
+    required this.kind,
+    required this.lat,
+    required this.lng,
+    this.visitedAt,
+    this.note,
+    this.revealsClueIds = const [],
+  });
+
+  factory MapLocation.fromJson(Map<String, dynamic> j) => MapLocation(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        kind: j['kind'] as String? ?? 'history',
+        lat: (j['lat'] as num).toDouble(),
+        lng: (j['lng'] as num).toDouble(),
+        visitedAt: j['visitedAt'] != null
+            ? DateTime.parse(j['visitedAt'] as String)
+            : null,
+        note: j['note'] as String?,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class BrowserEntry {
+  final String id;
+  final String title;
+  final String url;
+  final DateTime visitedAt;
+  final String? snippet;
+  final List<String> revealsClueIds;
+
+  const BrowserEntry({
+    required this.id,
+    required this.title,
+    required this.url,
+    required this.visitedAt,
+    this.snippet,
+    this.revealsClueIds = const [],
+  });
+
+  factory BrowserEntry.fromJson(Map<String, dynamic> j) => BrowserEntry(
+        id: j['id'] as String,
+        title: j['title'] as String,
+        url: j['url'] as String,
+        visitedAt: DateTime.parse(j['visitedAt'] as String),
+        snippet: j['snippet'] as String?,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class TimelineEvent {
+  final String id;
+  final DateTime timestamp;
+  final String? location;
+  final String? characterId;
+  final String description;
+  final String source;
+  final double reliability; // 0-1
+  final bool initiallyVisible;
+  final List<String> unlockWithClueIds;
+  final List<String> revealsClueIds;
+
+  const TimelineEvent({
+    required this.id,
+    required this.timestamp,
+    this.location,
+    this.characterId,
+    required this.description,
+    required this.source,
+    this.reliability = 0.8,
+    this.initiallyVisible = false,
+    this.unlockWithClueIds = const [],
+    this.revealsClueIds = const [],
+  });
+
+  factory TimelineEvent.fromJson(Map<String, dynamic> j) => TimelineEvent(
+        id: j['id'] as String,
+        timestamp: DateTime.parse(j['timestamp'] as String),
+        location: j['location'] as String?,
+        characterId: j['characterId'] as String?,
+        description: j['description'] as String,
+        source: j['source'] as String? ?? '',
+        reliability: (j['reliability'] as num?)?.toDouble() ?? 0.8,
+        initiallyVisible: j['initiallyVisible'] as bool? ?? false,
+        unlockWithClueIds:
+            (j['unlockWithClueIds'] as List?)?.cast<String>() ?? const [],
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class Ending {
+  final String id;
+  final String code; // A B C D E
+  final String title;
+  final String summary;
+  final String epilogue;
+  final Map<String, dynamic> requirements;
+
+  const Ending({
+    required this.id,
+    required this.code,
+    required this.title,
+    required this.summary,
+    required this.epilogue,
+    required this.requirements,
+  });
+
+  factory Ending.fromJson(Map<String, dynamic> j) => Ending(
+        id: j['id'] as String,
+        code: j['code'] as String,
+        title: j['title'] as String,
+        summary: j['summary'] as String,
+        epilogue: j['epilogue'] as String,
+        requirements: Map<String, dynamic>.from(j['requirements'] as Map? ?? {}),
+      );
+}
+
+class UnlockRule {
+  final String id;
+  final List<String> requiredClueIds;
+  final int minRequired;
+  final List<String> unlockClueIds;
+  final List<String> unlockTimelineIds;
+  final List<String> unlockContentIds;
+  final String? notificationText;
+  final String? liveEventId;
+
+  const UnlockRule({
+    required this.id,
+    required this.requiredClueIds,
+    this.minRequired = 0,
+    this.unlockClueIds = const [],
+    this.unlockTimelineIds = const [],
+    this.unlockContentIds = const [],
+    this.notificationText,
+    this.liveEventId,
+  });
+
+  factory UnlockRule.fromJson(Map<String, dynamic> j) => UnlockRule(
+        id: j['id'] as String,
+        requiredClueIds: (j['requiredClueIds'] as List?)?.cast<String>() ?? const [],
+        minRequired: j['minRequired'] as int? ?? 0,
+        unlockClueIds: (j['unlockClueIds'] as List?)?.cast<String>() ?? const [],
+        unlockTimelineIds:
+            (j['unlockTimelineIds'] as List?)?.cast<String>() ?? const [],
+        unlockContentIds:
+            (j['unlockContentIds'] as List?)?.cast<String>() ?? const [],
+        notificationText: j['notificationText'] as String?,
+        liveEventId: j['liveEventId'] as String?,
+      );
+}
+
+class LiveEvent {
+  final String id;
+  final String trigger; // time | clue | open_app | progress
+  final Map<String, dynamic> condition;
+  final String type; // notification | message | island | battery | remote
+  final Map<String, dynamic> payload;
+  final int delaySeconds;
+
+  const LiveEvent({
+    required this.id,
+    required this.trigger,
+    required this.condition,
+    required this.type,
+    required this.payload,
+    this.delaySeconds = 0,
+  });
+
+  factory LiveEvent.fromJson(Map<String, dynamic> j) => 
