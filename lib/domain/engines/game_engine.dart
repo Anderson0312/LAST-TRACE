@@ -384,4 +384,127 @@ class GameEngine extends ChangeNotifier {
         return _InferredRelation(
           relation: BoardRelationType.sameTime,
           label: 'CORROBORA',
-  
+          isSmart: true,
+          deductionText:
+              'Nova dedução: ${fromClue.name} e ${toClue.name} se reforçam no mesmo intervalo.',
+        );
+      }
+      if (related) {
+        return _InferredRelation(
+          relation: BoardRelationType.confirms,
+          label: 'CORROBORA',
+          isSmart: true,
+          deductionText:
+              'Nova dedução desbloqueada entre ${fromClue.name} e ${toClue.name}.',
+        );
+      }
+      if (samePeople) {
+        return _InferredRelation(
+          relation: BoardRelationType.samePerson,
+          label: 'MESMA PESSOA',
+          isSmart: true,
+          deductionText: 'As pistas apontam para as mesmas pessoas.',
+        );
+      }
+      if (fromClue.type == ClueType.location &&
+          toClue.type == ClueType.location) {
+        return const _InferredRelation(
+          relation: BoardRelationType.samePlace,
+          label: 'MESMO LOCAL',
+        );
+      }
+    }
+
+    if ((fromChar != null && toClue != null) ||
+        (toChar != null && fromClue != null)) {
+      final char = fromChar ?? toChar!;
+      final clue = fromClue ?? toClue!;
+      if (clue.relatedCharacterIds.contains(char.id)) {
+        return _InferredRelation(
+          relation: BoardRelationType.evidence,
+          label: 'EVIDÊNCIA',
+          isSmart: true,
+          deductionText: '${clue.name} liga-se a ${char.name}.',
+        );
+      }
+    }
+
+    return const _InferredRelation(
+      relation: BoardRelationType.related,
+      label: 'RELACIONADO',
+    );
+  }
+
+  /// Contagens para o painel de progresso do quadro.
+  BoardProgressSnapshot boardProgressSnapshot() {
+    final totalClues = c.clues.where((e) => !e.isRedHerring).length;
+    final found = progress.discoveredClues
+        .where((id) => c.clues.any((e) => e.id == id && !e.isRedHerring))
+        .length;
+    final importantLinks = progress.boardConnections
+        .where((e) =>
+            e.isSmart ||
+            e.relation == BoardRelationType.confirms ||
+            e.relation == BoardRelationType.contradicts)
+        .length;
+    final suspects = c.characters.where((e) => e.role == CharacterRole.suspect);
+    final investigated = suspects.where((s) {
+      return progress.discoveredClues.any((id) {
+        final clue = c.clues.where((e) => e.id == id).firstOrNull;
+        return clue?.relatedCharacterIds.contains(s.id) ?? false;
+      });
+    }).length;
+    final pct = totalClues == 0 ? 0.0 : found / totalClues;
+    return BoardProgressSnapshot(
+      percent: pct,
+      foundClues: found,
+      totalClues: totalClues,
+      smartConnections: importantLinks,
+      targetConnections: math.max(8, (totalClues / 4).round()),
+      investigatedSuspects: investigated,
+      totalSuspects: suspects.length,
+    );
+  }
+
+  void pushNotification(PhoneNotification n) {
+    notifications.insert(0, n);
+    revealFromContent(n.revealsClueIds);
+    islandState = IslandState.notification;
+    islandLabel = n.title;
+    notifyListeners();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (islandState == IslandState.notification) {
+        islandState = IslandState.idle;
+        islandLabel = '';
+        notifyListeners();
+      }
+    });
+  }
+
+  void setIsland(IslandState state, String label) {
+    islandState = state;
+    islandLabel = label;
+    notifyListeners();
+  }
+
+  void setFlag(String key, dynamic value) {
+    progress.flags[key] = value;
+    notifyListeners();
+  }
+
+  bool getFlag(String key) => progress.flags[key] == true;
+
+  void triggerRemoteAccess() {
+    if (progress.remoteAccessDetected) return;
+    progress = progress.copyWith(
+      remoteAccessDetected: true,
+      batteryPercent: (progress.batteryPercent - 6).clamp(1, 100),
+    );
+    progress.flags['unknown_device'] = true;
+    discoverClue('CLUE_REMOTE_ACCESS');
+    pushNotification(PhoneNotification(
+      id: _uuid.v4(),
+      appId: 'settings',
+      title: 'OSIS Segurança',
+      body: 'Acesso remoto detectado',
+      revealsClueIds: const ['CLUE_REMOTE_ACCESS'
