@@ -507,4 +507,127 @@ class GameEngine extends ChangeNotifier {
       appId: 'settings',
       title: 'OSIS Segurança',
       body: 'Acesso remoto detectado',
-      revealsClueIds: const ['CLUE_REMOTE_ACCESS'
+      revealsClueIds: const ['CLUE_REMOTE_ACCESS'],
+    ));
+    setIsland(IslandState.unknownActivity, 'atividade desconhecida');
+  }
+
+  void _applyUnlockRules() {
+    for (final rule in c.unlockRules) {
+      final have = rule.requiredClueIds.where(progress.discoveredClues.contains).length;
+      final need = rule.minRequired > 0 ? rule.minRequired : rule.requiredClueIds.length;
+      if (have < need) continue;
+      for (final id in rule.unlockClueIds) {
+        progress.discoveredClues.add(id);
+      }
+      for (final id in rule.unlockTimelineIds) {
+        progress.unlockedTimeline.add(id);
+      }
+      for (final id in rule.unlockContentIds) {
+        progress.unlockedContent.add(id);
+      }
+      if (rule.notificationText != null &&
+          !progress.flags.containsKey('rule_notif_${rule.id}')) {
+        progress.flags['rule_notif_${rule.id}'] = true;
+        pushNotification(PhoneNotification(
+          id: _uuid.v4(),
+          appId: 'system',
+          title: 'Arquivo recuperado',
+          body: rule.notificationText!,
+        ));
+      }
+    }
+  }
+
+  void _recomputeScores() {
+    final totalClues = c.clues.where((e) => !e.isRedHerring).length;
+    final found = c.clues
+        .where((e) => !e.isRedHerring && progress.discoveredClues.contains(e.id))
+        .length;
+    final cluePct = totalClues == 0 ? 0.0 : found / totalClues;
+
+    final totalTl = c.timeline.length;
+    final foundTl = c.timeline.where(isTimelineVisible).length;
+    final tlPct = totalTl == 0 ? 0.0 : foundTl / totalTl;
+
+    final critical = c.clues.where((e) => e.importance == ClueImportance.critical);
+    final critFound =
+        critical.where((e) => progress.discoveredClues.contains(e.id)).length;
+    final evidence = critical.isEmpty ? 0.0 : critFound / critical.length;
+
+    final contraPct = c.contradictions.isEmpty
+        ? 0.0
+        : progress.markedContradictions.length / c.contradictions.length;
+
+    final score = (cluePct * 40) + (tlPct * 25) + (evidence * 25) + (contraPct * 10);
+
+    progress = progress.copyWith(
+      clueCompletion: cluePct,
+      timelineCompletion: tlPct,
+      evidenceQuality: evidence,
+      investigationScore: score,
+    );
+  }
+
+  void setReduceMotion(bool v) {
+    reduceMotion = v;
+    notifyListeners();
+  }
+
+  void setHaptics(bool v) {
+    hapticsEnabled = v;
+    notifyListeners();
+  }
+
+  void setFontScale(double v) {
+    fontScale = v;
+    notifyListeners();
+  }
+
+  void startLiveLoop() {
+    _liveTimer?.cancel();
+    _liveTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (progress.deviceUnlocked && progress.chosenEndingId == null) {
+        progress = progress.copyWith(
+          playSeconds: progress.playSeconds + 4,
+        );
+        _syncDyingBattery();
+      }
+      _checkLiveEvents(trigger: 'time');
+      _checkLiveEvents(trigger: 'progress');
+      notifyListeners();
+    });
+  }
+
+  void stopLiveLoop() {
+    _liveTimer?.cancel();
+  }
+
+  /// Contagem restante (uso interno / Quadro).
+  String get remainingClockLabel {
+    final s = progress.remainingSeconds;
+    final m = (s ~/ 60).toString().padLeft(2, '0');
+    final r = (s % 60).toString().padLeft(2, '0');
+    return '$m:$r';
+  }
+
+  /// Nível narrativo da bateria (cai ao longo dos 30 min).
+  int get narrativeBatteryLevel => progress.batteryPercent;
+
+  /// Dica contextual com base no que ainda falta descobrir.
+  String? get suggestedNextHint {
+    if (!progress.deviceUnlocked || caseData == null) return null;
+    if (progress.chosenEndingId != null) return null;
+    final d = progress.discoveredClues;
+    bool miss(String id) => !d.contains(id);
+
+    if (miss('CLUE_LAST_MSG') ||
+        miss('CLUE_RAFAEL_WHERE') ||
+        miss('CLUE_MSG_DELETED')) {
+      return 'Abra o WhatsApp e leia as conversas recentes — especialmente Rafael e R.';
+    }
+    if (miss('CLUE_PARKING') || miss('CLUE_LOC_OFF') || miss('CLUE_LOC_RESTAURANT')) {
+      return 'Confira Mapas e Ajustes → Localização. O aparelho foi achado no São Lucas.';
+    }
+    if (miss('CLUE_CALL_UNKNOWN') ||
+        miss('CLU
