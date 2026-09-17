@@ -145,4 +145,248 @@ class Character {
         id: j['id'] as String,
         name: j['name'] as String,
         age: j['age'] as int?,
-    
+        photoAsset: j['photoAsset'] as String?,
+        profession: j['profession'] as String?,
+        relationToVictim: j['relationToVictim'] as String? ?? '',
+        phone: j['phone'] as String?,
+        email: j['email'] as String?,
+        address: j['address'] as String?,
+        personality: j['personality'] as String? ?? '',
+        secrets: (j['secrets'] as List?)?.cast<String>() ?? const [],
+        alibi: j['alibi'] as String?,
+        contradictions: (j['contradictions'] as List?)?.cast<String>() ?? const [],
+        role: CharacterRole.values.firstWhere(
+          (e) => e.name == j['role'],
+          orElse: () => CharacterRole.contact,
+        ),
+        initialSuspicion: j['initialSuspicion'] as int? ?? 0,
+      );
+}
+
+enum ClueType {
+  message,
+  photo,
+  metadata,
+  location,
+  call,
+  email,
+  note,
+  file,
+  browser,
+  audio,
+  environmental,
+  contradiction,
+  password,
+  timeline,
+  system,
+}
+
+enum ClueImportance { low, medium, high, critical }
+
+enum DiscoveryState { hidden, hinted, discovered, analyzed }
+
+class Clue {
+  final String id;
+  final String name;
+  final ClueType type;
+  final String description;
+  final String content;
+  final String origin;
+  final ClueImportance importance;
+  final List<String> relatedClueIds;
+  final List<String> relatedCharacterIds;
+  final List<String> unlockRequirements;
+  final bool isRedHerring;
+  final DiscoveryState initialState;
+
+  const Clue({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.content,
+    required this.origin,
+    required this.importance,
+    this.relatedClueIds = const [],
+    this.relatedCharacterIds = const [],
+    this.unlockRequirements = const [],
+    this.isRedHerring = false,
+    this.initialState = DiscoveryState.hidden,
+  });
+
+  factory Clue.fromJson(Map<String, dynamic> j) => Clue(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        type: ClueType.values.firstWhere(
+          (e) => e.name == j['type'],
+          orElse: () => ClueType.message,
+        ),
+        description: j['description'] as String? ?? '',
+        content: j['content'] as String? ?? '',
+        origin: j['origin'] as String? ?? '',
+        importance: ClueImportance.values.firstWhere(
+          (e) => e.name == j['importance'],
+          orElse: () => ClueImportance.medium,
+        ),
+        relatedClueIds: (j['relatedClueIds'] as List?)?.cast<String>() ?? const [],
+        relatedCharacterIds:
+            (j['relatedCharacterIds'] as List?)?.cast<String>() ?? const [],
+        unlockRequirements:
+            (j['unlockRequirements'] as List?)?.cast<String>() ?? const [],
+        isRedHerring: j['isRedHerring'] as bool? ?? false,
+        initialState: DiscoveryState.values.firstWhere(
+          (e) => e.name == j['initialState'],
+          orElse: () => DiscoveryState.hidden,
+        ),
+      );
+}
+
+enum MessageKind {
+  text,
+  image,
+  video,
+  voice,
+  document,
+  location,
+  deleted,
+  edited,
+  system,
+}
+
+class ChatMessage {
+  final String id;
+  final String senderId; // 'self' = Marina
+  final MessageKind kind;
+  final String body;
+  final DateTime timestamp;
+  final bool isDeleted;
+  final String? deletedPreview;
+  final bool isEdited;
+  final String? replyToId;
+  final String? attachmentId;
+  final List<String> revealsClueIds;
+  final bool locked;
+  final List<String> unlockWithClueIds;
+
+  const ChatMessage({
+    required this.id,
+    required this.senderId,
+    required this.kind,
+    required this.body,
+    required this.timestamp,
+    this.isDeleted = false,
+    this.deletedPreview,
+    this.isEdited = false,
+    this.replyToId,
+    this.attachmentId,
+    this.revealsClueIds = const [],
+    this.locked = false,
+    this.unlockWithClueIds = const [],
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
+        id: j['id'] as String,
+        senderId: j['senderId'] as String,
+        kind: MessageKind.values.firstWhere(
+          (e) => e.name == j['kind'],
+          orElse: () => MessageKind.text,
+        ),
+        body: j['body'] as String? ?? '',
+        timestamp: DateTime.parse(j['timestamp'] as String),
+        isDeleted: j['isDeleted'] as bool? ?? false,
+        deletedPreview: j['deletedPreview'] as String?,
+        isEdited: j['isEdited'] as bool? ?? false,
+        replyToId: j['replyToId'] as String?,
+        attachmentId: j['attachmentId'] as String?,
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+        locked: j['locked'] as bool? ?? false,
+        unlockWithClueIds:
+            (j['unlockWithClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class Conversation {
+  final String id;
+  final String contactId;
+  final String displayName;
+  final bool archived;
+  final bool blocked;
+  final bool unread;
+  final List<ChatMessage> messages;
+  final List<String> revealsClueIds;
+
+  const Conversation({
+    required this.id,
+    required this.contactId,
+    required this.displayName,
+    this.archived = false,
+    this.blocked = false,
+    this.unread = false,
+    required this.messages,
+    this.revealsClueIds = const [],
+  });
+
+  factory Conversation.fromJson(Map<String, dynamic> j) => Conversation(
+        id: j['id'] as String,
+        contactId: j['contactId'] as String,
+        displayName: j['displayName'] as String,
+        archived: j['archived'] as bool? ?? false,
+        blocked: j['blocked'] as bool? ?? false,
+        unread: j['unread'] as bool? ?? false,
+        messages: _list(j['messages'], ChatMessage.fromJson),
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class PhotoHotspot {
+  final String id;
+  final double x;
+  final double y;
+  final double w;
+  final double h;
+  final String label;
+  final List<String> revealsClueIds;
+
+  const PhotoHotspot({
+    required this.id,
+    required this.x,
+    required this.y,
+    required this.w,
+    required this.h,
+    required this.label,
+    this.revealsClueIds = const [],
+  });
+
+  factory PhotoHotspot.fromJson(Map<String, dynamic> j) => PhotoHotspot(
+        id: j['id'] as String,
+        x: (j['x'] as num).toDouble(),
+        y: (j['y'] as num).toDouble(),
+        w: (j['w'] as num).toDouble(),
+        h: (j['h'] as num).toDouble(),
+        label: j['label'] as String? ?? '',
+        revealsClueIds: (j['revealsClueIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+class PhotoItem {
+  final String id;
+  final String title;
+  final String caption;
+  final String visualDescription;
+  final DateTime takenAt;
+  final DateTime? metadataTakenAt;
+  final String? locationName;
+  final double? lat;
+  final double? lng;
+  final String? deviceName;
+  final bool deleted;
+  final bool corrupted;
+  final bool isScreenshot;
+  final bool isVideo;
+  final List<PhotoHotspot> hotspots;
+  final List<String> revealsClueIds;
+  final String colorSeed; // for generated placeholder art
+
+  const PhotoItem({
+    required this.id,
+    required this.tit
