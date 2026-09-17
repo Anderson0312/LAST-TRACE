@@ -82,4 +82,88 @@ class GameEngine extends ChangeNotifier {
   void openApp(String appId) {
     foregroundApp = appId;
     if (!recentApps.contains(appId)) {
-     
+      recentApps.insert(0, appId);
+      if (recentApps.length > 8) recentApps.removeLast();
+    }
+    _checkLiveEvents(trigger: 'open_app', extra: {'appId': appId});
+    notifyListeners();
+  }
+
+  void closeApp() {
+    foregroundApp = null;
+    islandState = IslandState.idle;
+    islandLabel = '';
+    notifyListeners();
+  }
+
+  void discoverClue(String clueId, {bool analyzed = false}) {
+    if (caseData == null) return;
+    if (!c.clues.any((e) => e.id == clueId)) return;
+    final wasNew = !progress.discoveredClues.contains(clueId);
+    progress.discoveredClues.add(clueId);
+    if (analyzed) progress.analyzedClues.add(clueId);
+    if (wasNew) {
+      _applyUnlockRules();
+      _recomputeScores();
+      _checkLiveEvents(trigger: 'clue', extra: {'clueId': clueId});
+      notifyListeners();
+    } else if (analyzed) {
+      _recomputeScores();
+      notifyListeners();
+    }
+  }
+
+  void _discover(String id) => discoverClue(id);
+
+  void revealFromContent(List<String> clueIds) {
+    for (final id in clueIds) {
+      discoverClue(id);
+    }
+  }
+
+  void markConversationOpened(String id) {
+    progress.openedConversations.add(id);
+    final conv = c.conversations.where((e) => e.id == id).firstOrNull;
+    if (conv != null) revealFromContent(conv.revealsClueIds);
+    // Limpa badge de notificação do WhatsApp quando a conversa for aberta
+    for (final n in notifications.where((n) =>
+        (n.appId == 'pulse' || n.appId == 'whatsapp') && !n.read)) {
+      n.read = true;
+    }
+    notifyListeners();
+  }
+
+  bool isConversationUnread(Conversation conv) {
+    if (!conv.unread) return false;
+    return !progress.openedConversations.contains(conv.id);
+  }
+
+  int get unreadWhatsAppCount => c.conversations
+      .where(isConversationUnread)
+      .length;
+
+  void markMessageOpened(String id, List<String> clues) {
+    progress.openedMessages.add(id);
+    revealFromContent(clues);
+    notifyListeners();
+  }
+
+  void viewPhoto(String id, List<String> clues) {
+    progress.viewedPhotos.add(id);
+    revealFromContent(clues);
+    notifyListeners();
+  }
+
+  void unlockHotspot(PhotoHotspot hs) {
+    revealFromContent(hs.revealsClueIds);
+  }
+
+  bool isContentUnlocked(String contentId) {
+    // conteúdo sem trava = liberado; com trava precisa estar em unlockedContent
+    return progress.unlockedContent.contains(contentId);
+  }
+
+  bool isMessageReadable(ChatMessage m) {
+    if (!m.locked) return true;
+    if (m.unlockWithClueIds.isEmpty) {
+      return progress.unlockedContent.contains(m.id);
