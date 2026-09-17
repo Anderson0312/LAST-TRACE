@@ -209,14 +209,40 @@ class GameEngine extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addBoardConnection(String fromId, String toId, {String? label}) {
-    progress.boardConnections.add(BoardConnection(
+  /// Resultado de uma conexão (smart deduction / contradição).
+  BoardConnectionResult addBoardConnection(
+    String fromId,
+    String toId, {
+    String? label,
+    BoardRelationType? relation,
+  }) {
+    final inferred = _inferRelation(fromId, toId);
+    final conn = BoardConnection(
       id: _uuid.v4(),
       fromId: fromId,
       toId: toId,
-      label: label,
-    ));
+      label: label ?? inferred.label,
+      relation: relation ?? inferred.relation,
+      isSmart: inferred.isSmart,
+      deductionText: inferred.deductionText,
+    );
+    progress.boardConnections.add(conn);
+
+    // Auto-marcar contradições quando as evidências forem ligadas.
+    for (final contra in c.contradictions) {
+      if (progress.markedContradictions.contains(contra.id)) continue;
+      final ids = contra.evidenceClueIds.toSet();
+      if (ids.contains(fromId) && ids.contains(toId)) {
+        markContradiction(contra.id);
+      }
+    }
+
     notifyListeners();
+    return BoardConnectionResult(
+      connection: conn,
+      deductionText: inferred.deductionText,
+      isContradiction: inferred.relation == BoardRelationType.contradicts,
+    );
   }
 
   void removeBoardConnection(String id) {
@@ -224,12 +250,220 @@ class GameEngine extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addInvestigatorNote(String text, NoteTag tag) {
+  void setBoardNodeLayout(String nodeId, BoardNodeLayout layout) {
+    progress.boardLayouts[nodeId] = layout;
+    notifyListeners();
+  }
+
+  void moveBoardNode(String nodeId, double x, double y) {
+    final prev = progress.boardLayouts[nodeId];
+    progress.boardLayouts[nodeId] = (prev ?? const BoardNodeLayout(x: 0, y: 0))
+        .copyWith(x: x, y: y, pinnedToBoard: true);
+    notifyListeners();
+  }
+
+  BoardNodeLayout ensureBoardLayout(String nodeId, {int seed = 0}) {
+    final existing = progress.boardLayouts[nodeId];
+    if (existing != null) return existing;
+    final layout = _defaultLayoutFor(nodeId, seed);
+    progress.boardLayouts[nodeId] = layout;
+    return layout;
+  }
+
+  BoardNodeLayout _defaultLayoutFor(String nodeId, int seed) {
+    final h = nodeId.hashCode.abs() + seed * 17;
+    final col = h % 5;
+    final row = (h ~/ 5) % 6;
+    final rot = ((h % 11) - 5) * 0.012;
+    return BoardNodeLayout(
+      x: 180 + col * 220.0 + (h % 30).toDouble(),
+      y: 160 + row * 200.0 + ((h ~/ 3) % 40).toDouble(),
+      rotation: rot,
+    );
+  }
+
+  void addInvestigatorNote(
+    String text,
+    NoteTag tag, {
+    double? boardX,
+    double? boardY,
+  }) {
+    final idx = progress.investigatorNotes.length;
     progress.investigatorNotes.insert(
       0,
-      InvestigatorNote(id: _uuid.v4(), text: text, tag: tag),
+      InvestigatorNote(
+        id: _uuid.v4(),
+        text: text,
+        tag: tag,
+        boardX: boardX ?? (320 + (idx % 4) * 40.0),
+        boardY: boardY ?? (520 + (idx % 3) * 50.0),
+        colorStyle: idx % 4,
+        rotation: -0.05 + (idx % 5) * 0.02,
+      ),
     );
     notifyListeners();
+  }
+
+  void updateInvestigatorNote(InvestigatorNote note) {
+    final i = progress.investigatorNotes.indexWhere((e) => e.id == note.id);
+    if (i < 0) return;
+    progress.investigatorNotes[i] = note;
+    notifyListeners();
+  }
+
+  void removeInvestigatorNote(String id) {
+    progress.investigatorNotes.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  void addBoardTheory({
+    required String title,
+    required String body,
+    List<String> evidenceIds = const [],
+  }) {
+    final n = progress.boardTheories.length + 1;
+    progress.boardTheories.add(BoardTheory(
+      id: _uuid.v4(),
+      title: title.isEmpty ? 'Teoria #$n' : title,
+      body: body,
+      evidenceIds: evidenceIds,
+      boardX: 700 + (n % 3) * 40.0,
+      boardY: 280 + (n % 4) * 60.0,
+    ));
+    notifyListeners();
+  }
+
+  void updateBoardTheory(BoardTheory theory) {
+    final i = progress.boardTheories.indexWhere((e) => e.id == theory.id);
+    if (i < 0) return;
+    progress.boardTheories[i] = theory;
+    notifyListeners();
+  }
+
+  void removeBoardTheory(String id) {
+    progress.boardTheories.removeWhere((e) => e.id == id);
+    notifyListeners();
+  }
+
+  _InferredRelation _inferRelation(String fromId, String toId) {
+    final fromClue = c.clues.where((e) => e.id == fromId).firstOrNull;
+    final toClue = c.clues.where((e) => e.id == toId).firstOrNull;
+    final fromChar = c.characters.where((e) => e.id == fromId).firstOrNull;
+    final toChar = c.characters.where((e) => e.id == toId).firstOrNull;
+
+    // Contradição narrativa
+    for (final contra in c.contradictions) {
+      final ids = contra.evidenceClueIds.toSet();
+      if ((ids.contains(fromId) && ids.contains(toId)) ||
+          (fromChar != null &&
+              contra.characterId == fromChar.id &&
+              ids.contains(toId)) ||
+          (toChar != null &&
+              contra.characterId == toChar.id &&
+              ids.contains(fromId))) {
+        return _InferredRelation(
+          relation: BoardRelationType.contradicts,
+          label: 'CONTRADIÇÃO',
+          isSmart: true,
+          deductionText:
+              '⚠ Contradição detectada: ${contra.statement}',
+        );
+      }
+    }
+
+    if (fromClue != null && toClue != null) {
+      final related = fromClue.relatedClueIds.contains(toId) ||
+          toClue.relatedClueIds.contains(fromId);
+      final samePeople = fromClue.relatedCharacterIds
+          .toSet()
+          .intersection(toClue.relatedCharacterIds.toSet())
+          .isNotEmpty;
+      if (related &&
+          fromClue.type == ClueType.location &&
+          toClue.type == ClueType.message) {
+        return _InferredRelation(
+          relation: BoardRelationType.sameTime,
+          label: 'CORROBORA',
+          isSmart: true,
+          deductionText:
+              'Nova dedução: ${fromClue.name} e ${toClue.name} se reforçam no mesmo intervalo.',
+        );
+      }
+      if (related) {
+        return _InferredRelation(
+          relation: BoardRelationType.confirms,
+          label: 'CORROBORA',
+          isSmart: true,
+          deductionText:
+              'Nova dedução desbloqueada entre ${fromClue.name} e ${toClue.name}.',
+        );
+      }
+      if (samePeople) {
+        return _InferredRelation(
+          relation: BoardRelationType.samePerson,
+          label: 'MESMA PESSOA',
+          isSmart: true,
+          deductionText: 'As pistas apontam para as mesmas pessoas.',
+        );
+      }
+      if (fromClue.type == ClueType.location &&
+          toClue.type == ClueType.location) {
+        return const _InferredRelation(
+          relation: BoardRelationType.samePlace,
+          label: 'MESMO LOCAL',
+        );
+      }
+    }
+
+    if ((fromChar != null && toClue != null) ||
+        (toChar != null && fromClue != null)) {
+      final char = fromChar ?? toChar!;
+      final clue = fromClue ?? toClue!;
+      if (clue.relatedCharacterIds.contains(char.id)) {
+        return _InferredRelation(
+          relation: BoardRelationType.evidence,
+          label: 'EVIDÊNCIA',
+          isSmart: true,
+          deductionText: '${clue.name} liga-se a ${char.name}.',
+        );
+      }
+    }
+
+    return const _InferredRelation(
+      relation: BoardRelationType.related,
+      label: 'RELACIONADO',
+    );
+  }
+
+  /// Contagens para o painel de progresso do quadro.
+  BoardProgressSnapshot boardProgressSnapshot() {
+    final totalClues = c.clues.where((e) => !e.isRedHerring).length;
+    final found = progress.discoveredClues
+        .where((id) => c.clues.any((e) => e.id == id && !e.isRedHerring))
+        .length;
+    final importantLinks = progress.boardConnections
+        .where((e) =>
+            e.isSmart ||
+            e.relation == BoardRelationType.confirms ||
+            e.relation == BoardRelationType.contradicts)
+        .length;
+    final suspects = c.characters.where((e) => e.role == CharacterRole.suspect);
+    final investigated = suspects.where((s) {
+      return progress.discoveredClues.any((id) {
+        final clue = c.clues.where((e) => e.id == id).firstOrNull;
+        return clue?.relatedCharacterIds.contains(s.id) ?? false;
+      });
+    }).length;
+    final pct = totalClues == 0 ? 0.0 : found / totalClues;
+    return BoardProgressSnapshot(
+      percent: pct,
+      foundClues: found,
+      totalClues: totalClues,
+      smartConnections: importantLinks,
+      targetConnections: math.max(8, (totalClues / 4).round()),
+      investigatedSuspects: investigated,
+      totalSuspects: suspects.length,
+    );
   }
 
   void pushNotification(PhoneNotification n) {
@@ -672,6 +906,52 @@ class GameEngine extends ChangeNotifier {
     stopLiveLoop();
     super.dispose();
   }
+}
+
+class BoardConnectionResult {
+  final BoardConnection connection;
+  final String? deductionText;
+  final bool isContradiction;
+
+  const BoardConnectionResult({
+    required this.connection,
+    this.deductionText,
+    this.isContradiction = false,
+  });
+}
+
+class BoardProgressSnapshot {
+  final double percent;
+  final int foundClues;
+  final int totalClues;
+  final int smartConnections;
+  final int targetConnections;
+  final int investigatedSuspects;
+  final int totalSuspects;
+
+  const BoardProgressSnapshot({
+    required this.percent,
+    required this.foundClues,
+    required this.totalClues,
+    required this.smartConnections,
+    required this.targetConnections,
+    required this.investigatedSuspects,
+    required this.totalSuspects,
+  });
+}
+
+class _InferredRelation {
+  final BoardRelationType relation;
+  final String label;
+  final bool isSmart;
+  final String? deductionText;
+
+  const _InferredRelation({
+    required this.relation,
+    required this.label,
+    this.isSmart = false,
+    this.deductionText,
+  });
 }
 
 enum IslandState {

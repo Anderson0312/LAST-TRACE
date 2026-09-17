@@ -964,6 +964,8 @@ class InvestigationProgress {
   final Set<String> unlockedEndings;
   final List<BoardConnection> boardConnections;
   final List<InvestigatorNote> investigatorNotes;
+  final List<BoardTheory> boardTheories;
+  final Map<String, BoardNodeLayout> boardLayouts;
   final Map<String, int> suspectTrust;
   final Map<String, int> suspectSuspicion;
   final double investigationScore;
@@ -995,6 +997,8 @@ class InvestigationProgress {
     Set<String>? unlockedEndings,
     List<BoardConnection>? boardConnections,
     List<InvestigatorNote>? investigatorNotes,
+    List<BoardTheory>? boardTheories,
+    Map<String, BoardNodeLayout>? boardLayouts,
     Map<String, int>? suspectTrust,
     Map<String, int>? suspectSuspicion,
     this.investigationScore = 0,
@@ -1023,6 +1027,8 @@ class InvestigationProgress {
         unlockedEndings = unlockedEndings ?? {},
         boardConnections = boardConnections ?? [],
         investigatorNotes = investigatorNotes ?? [],
+        boardTheories = boardTheories ?? [],
+        boardLayouts = boardLayouts ?? {},
         suspectTrust = suspectTrust ?? {},
         suspectSuspicion = suspectSuspicion ?? {},
         lastSavedAt = lastSavedAt ?? DateTime.now(),
@@ -1050,6 +1056,8 @@ class InvestigationProgress {
     Set<String>? unlockedEndings,
     List<BoardConnection>? boardConnections,
     List<InvestigatorNote>? investigatorNotes,
+    List<BoardTheory>? boardTheories,
+    Map<String, BoardNodeLayout>? boardLayouts,
     Map<String, int>? suspectTrust,
     Map<String, int>? suspectSuspicion,
     double? investigationScore,
@@ -1081,6 +1089,8 @@ class InvestigationProgress {
       unlockedEndings: unlockedEndings ?? this.unlockedEndings,
       boardConnections: boardConnections ?? this.boardConnections,
       investigatorNotes: investigatorNotes ?? this.investigatorNotes,
+      boardTheories: boardTheories ?? this.boardTheories,
+      boardLayouts: boardLayouts ?? this.boardLayouts,
       suspectTrust: suspectTrust ?? this.suspectTrust,
       suspectSuspicion: suspectSuspicion ?? this.suspectSuspicion,
       investigationScore: investigationScore ?? this.investigationScore,
@@ -1114,6 +1124,8 @@ class InvestigationProgress {
         'unlockedEndings': unlockedEndings.toList(),
         'boardConnections': boardConnections.map((e) => e.toJson()).toList(),
         'investigatorNotes': investigatorNotes.map((e) => e.toJson()).toList(),
+        'boardTheories': boardTheories.map((e) => e.toJson()).toList(),
+        'boardLayouts': boardLayouts.map((k, v) => MapEntry(k, v.toJson())),
         'suspectTrust': suspectTrust,
         'suspectSuspicion': suspectSuspicion,
         'investigationScore': investigationScore,
@@ -1157,6 +1169,15 @@ class InvestigationProgress {
         investigatorNotes: (j['investigatorNotes'] as List? ?? [])
             .map((e) => InvestigatorNote.fromJson(Map<String, dynamic>.from(e)))
             .toList(),
+        boardTheories: (j['boardTheories'] as List? ?? [])
+            .map((e) => BoardTheory.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        boardLayouts: {
+          for (final e in (j['boardLayouts'] as Map? ?? {}).entries)
+            e.key as String: BoardNodeLayout.fromJson(
+              Map<String, dynamic>.from(e.value as Map),
+            ),
+        },
         suspectTrust: Map<String, int>.from(j['suspectTrust'] as Map? ?? {}),
         suspectSuspicion:
             Map<String, int>.from(j['suspectSuspicion'] as Map? ?? {}),
@@ -1178,11 +1199,71 @@ class InvestigationProgress {
       );
 }
 
+/// Tipo de relação entre nós do quadro de investigação.
+enum BoardRelationType {
+  related,
+  confirms,
+  contradicts,
+  samePlace,
+  sameTime,
+  samePerson,
+  sameConversation,
+  evidence,
+  alibi,
+  motive,
+  opportunity,
+}
+
+/// Posição e rotação de um elemento no canvas do quadro.
+class BoardNodeLayout {
+  final double x;
+  final double y;
+  final double rotation;
+  final bool pinnedToBoard;
+
+  const BoardNodeLayout({
+    required this.x,
+    required this.y,
+    this.rotation = 0,
+    this.pinnedToBoard = true,
+  });
+
+  BoardNodeLayout copyWith({
+    double? x,
+    double? y,
+    double? rotation,
+    bool? pinnedToBoard,
+  }) =>
+      BoardNodeLayout(
+        x: x ?? this.x,
+        y: y ?? this.y,
+        rotation: rotation ?? this.rotation,
+        pinnedToBoard: pinnedToBoard ?? this.pinnedToBoard,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'x': x,
+        'y': y,
+        'rotation': rotation,
+        'pinnedToBoard': pinnedToBoard,
+      };
+
+  factory BoardNodeLayout.fromJson(Map<String, dynamic> j) => BoardNodeLayout(
+        x: (j['x'] as num?)?.toDouble() ?? 0,
+        y: (j['y'] as num?)?.toDouble() ?? 0,
+        rotation: (j['rotation'] as num?)?.toDouble() ?? 0,
+        pinnedToBoard: j['pinnedToBoard'] as bool? ?? true,
+      );
+}
+
 class BoardConnection {
   final String id;
   final String fromId;
   final String toId;
   final String? label;
+  final BoardRelationType relation;
+  final bool isSmart;
+  final String? deductionText;
   final DateTime createdAt;
 
   BoardConnection({
@@ -1190,6 +1271,9 @@ class BoardConnection {
     required this.fromId,
     required this.toId,
     this.label,
+    this.relation = BoardRelationType.related,
+    this.isSmart = false,
+    this.deductionText,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -1198,6 +1282,9 @@ class BoardConnection {
         'fromId': fromId,
         'toId': toId,
         'label': label,
+        'relation': relation.name,
+        'isSmart': isSmart,
+        'deductionText': deductionText,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -1206,6 +1293,12 @@ class BoardConnection {
         fromId: j['fromId'] as String,
         toId: j['toId'] as String,
         label: j['label'] as String?,
+        relation: BoardRelationType.values.firstWhere(
+          (e) => e.name == j['relation'],
+          orElse: () => BoardRelationType.related,
+        ),
+        isSmart: j['isSmart'] as bool? ?? false,
+        deductionText: j['deductionText'] as String?,
         createdAt: DateTime.parse(j['createdAt'] as String),
       );
 }
@@ -1217,19 +1310,55 @@ class InvestigatorNote {
   final String text;
   final NoteTag tag;
   final DateTime createdAt;
+  final double? boardX;
+  final double? boardY;
+  final double rotation;
+  final int colorStyle;
+  final List<String> linkedIds;
 
   InvestigatorNote({
     required this.id,
     required this.text,
     required this.tag,
     DateTime? createdAt,
+    this.boardX,
+    this.boardY,
+    this.rotation = -0.04,
+    this.colorStyle = 0,
+    this.linkedIds = const [],
   }) : createdAt = createdAt ?? DateTime.now();
+
+  InvestigatorNote copyWith({
+    String? text,
+    NoteTag? tag,
+    double? boardX,
+    double? boardY,
+    double? rotation,
+    int? colorStyle,
+    List<String>? linkedIds,
+  }) =>
+      InvestigatorNote(
+        id: id,
+        text: text ?? this.text,
+        tag: tag ?? this.tag,
+        createdAt: createdAt,
+        boardX: boardX ?? this.boardX,
+        boardY: boardY ?? this.boardY,
+        rotation: rotation ?? this.rotation,
+        colorStyle: colorStyle ?? this.colorStyle,
+        linkedIds: linkedIds ?? this.linkedIds,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'text': text,
         'tag': tag.name,
         'createdAt': createdAt.toIso8601String(),
+        'boardX': boardX,
+        'boardY': boardY,
+        'rotation': rotation,
+        'colorStyle': colorStyle,
+        'linkedIds': linkedIds,
       };
 
   factory InvestigatorNote.fromJson(Map<String, dynamic> j) => InvestigatorNote(
@@ -1240,6 +1369,77 @@ class InvestigatorNote {
           orElse: () => NoteTag.other,
         ),
         createdAt: DateTime.parse(j['createdAt'] as String),
+        boardX: (j['boardX'] as num?)?.toDouble(),
+        boardY: (j['boardY'] as num?)?.toDouble(),
+        rotation: (j['rotation'] as num?)?.toDouble() ?? -0.04,
+        colorStyle: j['colorStyle'] as int? ?? 0,
+        linkedIds: (j['linkedIds'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
+/// Hipótese montada pelo jogador no quadro.
+class BoardTheory {
+  final String id;
+  final String title;
+  final String body;
+  final List<String> evidenceIds;
+  final double boardX;
+  final double boardY;
+  final double rotation;
+  final DateTime createdAt;
+
+  BoardTheory({
+    required this.id,
+    required this.title,
+    required this.body,
+    this.evidenceIds = const [],
+    this.boardX = 400,
+    this.boardY = 400,
+    this.rotation = 0.03,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  BoardTheory copyWith({
+    String? title,
+    String? body,
+    List<String>? evidenceIds,
+    double? boardX,
+    double? boardY,
+    double? rotation,
+  }) =>
+      BoardTheory(
+        id: id,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        evidenceIds: evidenceIds ?? this.evidenceIds,
+        boardX: boardX ?? this.boardX,
+        boardY: boardY ?? this.boardY,
+        rotation: rotation ?? this.rotation,
+        createdAt: createdAt,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'body': body,
+        'evidenceIds': evidenceIds,
+        'boardX': boardX,
+        'boardY': boardY,
+        'rotation': rotation,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory BoardTheory.fromJson(Map<String, dynamic> j) => BoardTheory(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        body: j['body'] as String? ?? '',
+        evidenceIds: (j['evidenceIds'] as List?)?.cast<String>() ?? const [],
+        boardX: (j['boardX'] as num?)?.toDouble() ?? 400,
+        boardY: (j['boardY'] as num?)?.toDouble() ?? 400,
+        rotation: (j['rotation'] as num?)?.toDouble() ?? 0.03,
+        createdAt: j['createdAt'] != null
+            ? DateTime.parse(j['createdAt'] as String)
+            : DateTime.now(),
       );
 }
 

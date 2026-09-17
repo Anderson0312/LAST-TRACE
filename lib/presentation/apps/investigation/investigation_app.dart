@@ -9,6 +9,7 @@ import '../../../domain/engines/game_engine.dart';
 import '../../../domain/models/models.dart';
 import '../../../main.dart';
 import '../shared/app_scaffold.dart';
+import 'investigation_board.dart';
 
 class InvestigationApp extends StatefulWidget {
   final VoidCallback onClose;
@@ -21,8 +22,6 @@ class InvestigationApp extends StatefulWidget {
 class _InvestigationAppState extends State<InvestigationApp>
     with SingleTickerProviderStateMixin {
   TabController? _tabs;
-  String? _selectedA;
-  String? _selectedB;
   final _importCtrl = TextEditingController();
   String? _linkFrom;
 
@@ -80,7 +79,7 @@ class _InvestigationAppState extends State<InvestigationApp>
             child: TabBarView(
               controller: tabs,
               children: [
-                _board(engine),
+                const InvestigationBoard(),
                 _clues(engine, coop),
                 _timeline(engine, fmt),
                 _contras(engine),
@@ -94,104 +93,7 @@ class _InvestigationAppState extends State<InvestigationApp>
     );
   }
 
-  Widget _board(GameEngine engine) {
-    final people = engine.c.characters
-        .where((c) =>
-            c.role == CharacterRole.suspect ||
-            c.role == CharacterRole.victim ||
-            c.role == CharacterRole.mysterious)
-        .toList();
-    final clues = engine.c.clues
-        .where((c) => engine.progress.discoveredClues.contains(c.id))
-        .take(12)
-        .toList();
-
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        _urgencyBanner(engine),
-        const SizedBox(height: 10),
-        Text(
-          'Score: ${engine.progress.investigationScore.toStringAsFixed(0)} · '
-          'Pistas ${(engine.progress.clueCompletion * 100).toStringAsFixed(0)}% · '
-          'Timeline ${(engine.progress.timelineCompletion * 100).toStringAsFixed(0)}%',
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        const Text('Pessoas', style: TextStyle(fontWeight: FontWeight.w600)),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: people
-              .map((p) => ActionChip(
-                    label: Text(p.name.split(' ').first),
-                    backgroundColor: _selectedA == p.id || _selectedB == p.id
-                        ? OsisTheme.accent.withValues(alpha: 0.4)
-                        : Colors.white10,
-                    onPressed: () => _pick(p.id),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 12),
-        const Text('Pistas descobertas',
-            style: TextStyle(fontWeight: FontWeight.w600)),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: clues
-              .map((c) => ActionChip(
-                    label: Text(c.name, style: const TextStyle(fontSize: 11)),
-                    onPressed: () => _pick(c.id),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 16),
-        if (_selectedA != null && _selectedB != null)
-          FilledButton(
-            onPressed: () {
-              engine.addBoardConnection(_selectedA!, _selectedB!);
-              setState(() {
-                _selectedA = null;
-                _selectedB = null;
-              });
-              autosave(context);
-            },
-            child: Text('Conectar $_selectedA → $_selectedB'),
-          )
-        else
-          Text(
-            _selectedA == null
-                ? 'Selecione dois elementos para conectar. O jogo não confirma se está certo.'
-                : 'Selecione o segundo elemento.',
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
-          ),
-        const SizedBox(height: 16),
-        const Text('Conexões', style: TextStyle(fontWeight: FontWeight.w600)),
-        ...engine.progress.boardConnections.map((c) => ListTile(
-              dense: true,
-              title: Text('${c.fromId} → ${c.toId}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.close, size: 18),
-                onPressed: () => engine.removeBoardConnection(c.id),
-              ),
-            )),
-        const Divider(),
-        const Text('Minhas Anotações',
-            style: TextStyle(fontWeight: FontWeight.w600)),
-        ...engine.progress.investigatorNotes.map((n) => ListTile(
-              dense: true,
-              leading: Icon(_tagIcon(n.tag), size: 18),
-              title: Text(n.text),
-              subtitle: Text(n.tag.name),
-            )),
-        TextButton.icon(
-          onPressed: () => _addNote(engine),
-          icon: const Icon(Icons.edit_note),
-          label: const Text('Nova anotação'),
-        ),
-      ],
-    );
-  }
+  // Quadro visual vive em [InvestigationBoard].
 
   Widget _urgencyBanner(GameEngine engine) {
     final hint = engine.suggestedNextHint;
@@ -277,76 +179,6 @@ class _InvestigationAppState extends State<InvestigationApp>
         ],
       ),
     );
-  }
-
-  void _pick(String id) {
-    setState(() {
-      if (_selectedA == null) {
-        _selectedA = id;
-      } else if (_selectedB == null && id != _selectedA) {
-        _selectedB = id;
-      } else {
-        _selectedA = id;
-        _selectedB = null;
-      }
-    });
-  }
-
-  IconData _tagIcon(NoteTag t) {
-    switch (t) {
-      case NoteTag.suspect:
-        return Icons.person_search;
-      case NoteTag.evidence:
-        return Icons.fingerprint;
-      case NoteTag.theory:
-        return Icons.lightbulb_outline;
-      case NoteTag.location:
-        return Icons.place;
-      case NoteTag.question:
-        return Icons.help_outline;
-      case NoteTag.other:
-        return Icons.notes;
-    }
-  }
-
-  Future<void> _addNote(GameEngine engine) async {
-    final text = TextEditingController();
-    var tag = NoteTag.theory;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: OsisTheme.bgElevated,
-        title: const Text('Anotação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: text, maxLines: 3),
-            DropdownButtonFormField<NoteTag>(
-              initialValue: tag,
-              items: NoteTag.values
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) tag = v;
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancelar')),
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Salvar')),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (ok == true && text.text.trim().isNotEmpty) {
-      engine.addInvestigatorNote(text.text.trim(), tag);
-      await autosave(context);
-    }
   }
 
   Widget _clues(GameEngine engine, CoopEngine coop) {
